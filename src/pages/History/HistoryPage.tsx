@@ -19,7 +19,7 @@ import {
 import { WorkoutSession } from '../../types/workout';
 
 export const HistoryPage: React.FC = () => {
-  const { sessions, prs, settings } = useWorkout();
+  const { sessions, prs, settings, program } = useWorkout();
 
   const [viewMode, setViewMode] = useState<'workouts' | 'exercises'>('workouts');
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
@@ -172,8 +172,16 @@ export const HistoryPage: React.FC = () => {
           {completedSessions.map(session => {
             const isExpanded = expandedSessionId === session.id;
             const d = new Date(session.completedAt || session.startedAt);
-            const dateFormatted = `${d.toLocaleString('default', { month: 'short' }).toUpperCase()} ${d.getDate()}`;
+            const dateFormatted = `${d.toLocaleString('default', { month: 'short' }).toUpperCase()} ${d.getDate()}, ${d.getFullYear()}`;
             const prsInSession = session.prsAchieved?.length || 0;
+
+            const dayDef = program.find(
+              p => p.id === session.workoutDayId || p.weekday === session.weekday || p.dayNumber === session.dayNumber
+            );
+
+            const displayTitle = dayDef 
+              ? `${dayDef.displayName.toUpperCase()} — ${dayDef.title}` 
+              : session.title;
 
             return (
               <div
@@ -207,7 +215,7 @@ export const HistoryPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-base font-display font-bold text-white uppercase">
-                        {session.title}
+                        {displayTitle}
                       </h3>
                       <div className="flex items-center space-x-3 text-xs font-mono text-text-secondary mt-1">
                         <span className="flex items-center">

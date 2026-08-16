@@ -19,9 +19,11 @@ export type UnitType = 'kg' | 'lb';
 
 export type WorkoutStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED' | 'ABANDONED';
 
+export type Weekday = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+
 export interface Exercise {
   id: string;
-  workoutDayId: number;
+  workoutDayId: number | string;
   name: string;
   order: number;
   targetSets: number;
@@ -40,17 +42,20 @@ export interface Exercise {
 }
 
 export interface WorkoutDay {
-  id: number;
-  dayNumber: number; // 1 to 7
-  title: string;
-  subtitle: string;
+  id: number | Weekday;
+  weekday: Weekday;
+  displayName: string; // e.g. "Monday"
+  shortName: string;   // e.g. "MON"
+  title: string;       // e.g. "CHEST + TRICEPS"
+  subtitle?: string;   // e.g. "Upper Body Push"
   category: string;
-  variation?: string; // 'VOLUME FOCUSED' | 'PUMP / GROWTH FOCUSED' | 'LIGHT LOAD + PUMP'
+  variation?: string;  // 'VOLUME FOCUSED' | 'PUMP / GROWTH FOCUSED' | 'LIGHT LOAD + PUMP'
   focus: string;
   estimatedDurationMin: string;
   isRestDay: boolean;
   exercises: Exercise[];
   recoveryActivities?: string[];
+  dayNumber?: number;  // 1 to 7 for backwards compatibility
 }
 
 export interface SetLog {
@@ -91,8 +96,9 @@ export interface PersonalRecord {
 
 export interface WorkoutSession {
   id: string;
-  workoutDayId: number;
-  dayNumber: number;
+  workoutDayId: number | string;
+  weekday?: Weekday;
+  dayNumber?: number;
   title: string;
   variation?: string;
   status: WorkoutStatus;
@@ -121,8 +127,8 @@ export interface BodyMeasurement {
   shouldersCm?: number;
   thighsCm?: number;
   bodyFatPercent?: number;
-  photoId?: string; // Stored in IndexedDB
-  photoDataUrl?: string; // Optional preview
+  photoId?: string;
+  photoDataUrl?: string;
   notes?: string;
 }
 

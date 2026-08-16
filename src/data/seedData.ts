@@ -1,6 +1,7 @@
-import { Achievement, BodyMeasurement, PersonalRecord, WorkoutSession } from '../types/workout';
+import { Achievement, BodyMeasurement, PersonalRecord, WorkoutSession, Weekday } from '../types/workout';
 import { WORKOUT_PROGRAM } from './workoutProgram';
-import { calculateEstimated1RM, calculateExerciseVolume } from '../utils/calculations';
+import { calculateExerciseVolume } from '../utils/calculations';
+import { WEEKDAYS_ORDER } from '../utils/dates';
 
 export const INITIAL_ACHIEVEMENTS: Achievement[] = [
   {
@@ -76,9 +77,7 @@ export function generateSeedData(): {
   const now = Date.now();
   const dayMs = 86400000;
 
-  // Generate 4 weeks of workout sessions (Days 1 to 6 repeated for 4 cycles)
-  // Let's create realistic progression curves for key lifts:
-  // Week 1 (24-28 days ago) -> Week 2 (17-21 days ago) -> Week 3 (10-14 days ago) -> Week 4 (1-5 days ago)
+  // Generate 4 weeks of workout sessions (Monday to Saturday)
   const weeks = [
     { daysAgo: 24, mult: 0.90, desc: 'Week 1' },
     { daysAgo: 17, mult: 0.94, desc: 'Week 2' },
@@ -89,12 +88,14 @@ export function generateSeedData(): {
   let sessionIdCounter = 1;
 
   weeks.forEach((w, wIdx) => {
-    // Generate Day 1 to Day 6 for this week
-    for (let dayNum = 1; dayNum <= 6; dayNum++) {
-      const dayDef = WORKOUT_PROGRAM.find(p => p.dayNumber === dayNum);
-      if (!dayDef || dayDef.isRestDay) continue;
+    // Generate Monday through Saturday (skip Sunday rest day for completed logs)
+    const trainingDays: Weekday[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
-      const sessionOffsetDays = w.daysAgo - (dayNum - 1);
+    trainingDays.forEach((weekday, dayIdx) => {
+      const dayDef = WORKOUT_PROGRAM.find(p => p.weekday === weekday);
+      if (!dayDef || dayDef.isRestDay) return;
+
+      const sessionOffsetDays = w.daysAgo - dayIdx;
       const sessionDate = now - sessionOffsetDays * dayMs;
       const durationSec = 3400 + Math.floor(Math.random() * 800); // ~56-70 mins
 
@@ -130,13 +131,9 @@ export function generateSeedData(): {
           sets: sets,
           completed: true,
           isFailureBased: ex.isFailureBased,
-          note: sIdxIsNote(ex.id) ? 'Clean tempo, good bar speed.' : undefined,
+          note: (ex.id === 'd1-ex1' || ex.id === 'd2-ex1' || ex.id === 'd3-ex1') ? 'Clean tempo, good bar speed.' : undefined,
         };
       });
-
-      function sIdxIsNote(id: string) {
-        return id === 'd1-ex1' || id === 'd2-ex1' || id === 'd3-ex1';
-      }
 
       const totalVol = exerciseLogs.reduce((sum, ex) => sum + calculateExerciseVolume(ex), 0);
       const totalSets = exerciseLogs.reduce((sum, ex) => sum + ex.sets.length, 0);
@@ -145,8 +142,9 @@ export function generateSeedData(): {
       const session: WorkoutSession = {
         id: `seed-session-${sessionIdCounter++}`,
         workoutDayId: dayDef.id,
+        weekday: dayDef.weekday,
         dayNumber: dayDef.dayNumber,
-        title: `${dayDef.title} — ${dayDef.subtitle}`,
+        title: `${dayDef.displayName.toUpperCase()} — ${dayDef.title}`,
         variation: dayDef.variation,
         status: 'COMPLETED',
         startedAt: sessionDate,
@@ -159,11 +157,11 @@ export function generateSeedData(): {
         overallRpe: 8,
         energyRating: 4,
         isDemo: true,
-        notes: dayNum === 1 ? 'Solid chest pump and tricep lockouts.' : undefined,
+        notes: weekday === 'monday' ? 'Solid chest pump and tricep lockouts.' : undefined,
       };
 
       sessions.push(session);
-    }
+    });
   });
 
   // Seed PRs from Week 4 workouts

@@ -2,10 +2,13 @@ import { WorkoutDay } from '../types/workout';
 
 export const WORKOUT_PROGRAM: WorkoutDay[] = [
   {
-    id: 1,
+    id: "monday",
+    weekday: "monday",
+    displayName: "Monday",
+    shortName: "MON",
     dayNumber: 1,
-    title: "DAY 1",
-    subtitle: "CHEST + TRICEPS",
+    title: "CHEST + TRICEPS",
+    subtitle: "Upper Body Push",
     category: "Upper Body Push",
     focus: "Hypertrophy & Strength Focus",
     estimatedDurationMin: "55–70 MIN",
@@ -13,7 +16,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
     exercises: [
       {
         id: "d1-ex1",
-        workoutDayId: 1,
+        workoutDayId: "monday",
         name: "Incline Barbell Press",
         order: 1,
         targetSets: 4,
@@ -32,7 +35,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d1-ex2",
-        workoutDayId: 1,
+        workoutDayId: "monday",
         name: "Flat Dumbbell Press",
         order: 2,
         targetSets: 3,
@@ -51,7 +54,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d1-ex3",
-        workoutDayId: 1,
+        workoutDayId: "monday",
         name: "Pec Deck Fly",
         order: 3,
         targetSets: 3,
@@ -70,7 +73,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d1-ex4",
-        workoutDayId: 1,
+        workoutDayId: "monday",
         name: "Rope Pushdowns",
         order: 4,
         targetSets: 3,
@@ -89,7 +92,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d1-ex5",
-        workoutDayId: 1,
+        workoutDayId: "monday",
         name: "Overhead Cable Extension",
         order: 5,
         targetSets: 3,
@@ -109,10 +112,13 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
     ],
   },
   {
-    id: 2,
+    id: "tuesday",
+    weekday: "tuesday",
+    displayName: "Tuesday",
+    shortName: "TUE",
     dayNumber: 2,
-    title: "DAY 2",
-    subtitle: "BACK + BICEPS",
+    title: "BACK + BICEPS",
+    subtitle: "Upper Body Pull",
     category: "Upper Body Pull",
     focus: "Lats & Mid-Back Thickness",
     estimatedDurationMin: "60–75 MIN",
@@ -120,7 +126,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
     exercises: [
       {
         id: "d2-ex1",
-        workoutDayId: 2,
+        workoutDayId: "tuesday",
         name: "Barbell Rows",
         order: 1,
         targetSets: 4,
@@ -139,7 +145,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d2-ex2",
-        workoutDayId: 2,
+        workoutDayId: "tuesday",
         name: "Lat Pulldown",
         order: 2,
         targetSets: 4,
@@ -158,7 +164,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d2-ex3",
-        workoutDayId: 2,
+        workoutDayId: "tuesday",
         name: "Seated Cable Rows",
         order: 3,
         targetSets: 3,
@@ -177,7 +183,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d2-ex4",
-        workoutDayId: 2,
+        workoutDayId: "tuesday",
         name: "Alternating Dumbbell Curls",
         order: 4,
         targetSets: 3,
@@ -196,7 +202,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d2-ex5",
-        workoutDayId: 2,
+        workoutDayId: "tuesday",
         name: "Preacher Curls",
         order: 5,
         targetSets: 3,
@@ -216,10 +222,13 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
     ],
   },
   {
-    id: 3,
+    id: "wednesday",
+    weekday: "wednesday",
+    displayName: "Wednesday",
+    shortName: "WED",
     dayNumber: 3,
-    title: "DAY 3",
-    subtitle: "SHOULDERS + LEGS",
+    title: "SHOULDERS + LEGS",
+    subtitle: "Full Delts & Lower Body",
     category: "Full Delts & Lower Body",
     focus: "Shoulder Volume & Quad/Hamstring Density",
     estimatedDurationMin: "60–75 MIN",
@@ -227,7 +236,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
     exercises: [
       {
         id: "d3-ex1",
-        workoutDayId: 3,
+        workoutDayId: "wednesday",
         name: "Dumbbell Shoulder Press",
         order: 1,
         targetSets: 4,
@@ -246,7 +255,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d3-ex2",
-        workoutDayId: 3,
+        workoutDayId: "wednesday",
         name: "Lateral Raises",
         order: 2,
         targetSets: 4,
@@ -265,7 +274,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d3-ex3",
-        workoutDayId: 3,
+        workoutDayId: "wednesday",
         name: "Reverse Pec Deck",
         order: 3,
         targetSets: 3,
@@ -284,7 +293,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d3-ex4",
-        workoutDayId: 3,
+        workoutDayId: "wednesday",
         name: "Leg Extensions",
         order: 4,
         targetSets: 4,
@@ -303,7 +312,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d3-ex5",
-        workoutDayId: 3,
+        workoutDayId: "wednesday",
         name: "Hamstring Curls",
         order: 5,
         targetSets: 4,
@@ -322,7 +331,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d3-ex6",
-        workoutDayId: 3,
+        workoutDayId: "wednesday",
         name: "Seated Calf Raises",
         order: 6,
         targetSets: 4,
@@ -342,10 +351,13 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
     ],
   },
   {
-    id: 4,
+    id: "thursday",
+    weekday: "thursday",
+    displayName: "Thursday",
+    shortName: "THU",
     dayNumber: 4,
-    title: "DAY 4",
-    subtitle: "CHEST + TRICEPS",
+    title: "CHEST + TRICEPS",
+    subtitle: "Upper Body Push (Volume)",
     category: "Upper Body Push (B)",
     variation: "VOLUME FOCUSED",
     focus: "High Volume & Muscle Pump",
@@ -354,7 +366,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
     exercises: [
       {
         id: "d4-ex1",
-        workoutDayId: 4,
+        workoutDayId: "thursday",
         name: "Smith Machine Incline Press",
         order: 1,
         targetSets: 4,
@@ -373,7 +385,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d4-ex2",
-        workoutDayId: 4,
+        workoutDayId: "thursday",
         name: "Cable Crossovers (Low to High)",
         order: 2,
         targetSets: 3,
@@ -392,7 +404,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d4-ex3",
-        workoutDayId: 4,
+        workoutDayId: "thursday",
         name: "Machine Chest Press",
         order: 3,
         targetSets: 3,
@@ -411,7 +423,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d4-ex4",
-        workoutDayId: 4,
+        workoutDayId: "thursday",
         name: "Skull Crushers",
         order: 4,
         targetSets: 3,
@@ -430,7 +442,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d4-ex5",
-        workoutDayId: 4,
+        workoutDayId: "thursday",
         name: "Close-Grip Push-Ups",
         order: 5,
         targetSets: 2,
@@ -450,10 +462,13 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
     ],
   },
   {
-    id: 5,
+    id: "friday",
+    weekday: "friday",
+    displayName: "Friday",
+    shortName: "FRI",
     dayNumber: 5,
-    title: "DAY 5",
-    subtitle: "BACK + BICEPS",
+    title: "BACK + BICEPS",
+    subtitle: "Upper Body Pull (Growth)",
     category: "Upper Body Pull (B)",
     variation: "PUMP / GROWTH FOCUSED",
     focus: "Blood Flow & Extreme Hypertrophy",
@@ -462,7 +477,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
     exercises: [
       {
         id: "d5-ex1",
-        workoutDayId: 5,
+        workoutDayId: "friday",
         name: "Lat Pulldown (Wide Grip)",
         order: 1,
         targetSets: 4,
@@ -481,7 +496,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d5-ex2",
-        workoutDayId: 5,
+        workoutDayId: "friday",
         name: "T-Bar Rows",
         order: 2,
         targetSets: 3,
@@ -500,7 +515,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d5-ex3",
-        workoutDayId: 5,
+        workoutDayId: "friday",
         name: "Straight Arm Cable Pulldown",
         order: 3,
         targetSets: 3,
@@ -519,7 +534,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d5-ex4",
-        workoutDayId: 5,
+        workoutDayId: "friday",
         name: "EZ-Bar Curl",
         order: 4,
         targetSets: 3,
@@ -538,7 +553,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d5-ex5",
-        workoutDayId: 5,
+        workoutDayId: "friday",
         name: "Incline Dumbbell Curls",
         order: 5,
         targetSets: 3,
@@ -558,10 +573,13 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
     ],
   },
   {
-    id: 6,
+    id: "saturday",
+    weekday: "saturday",
+    displayName: "Saturday",
+    shortName: "SAT",
     dayNumber: 6,
-    title: "DAY 6",
-    subtitle: "SHOULDERS + LEGS",
+    title: "SHOULDERS + LEGS",
+    subtitle: "Delts & Legs (Pump)",
     category: "Full Delts & Legs (B)",
     variation: "LIGHT LOAD + PUMP",
     focus: "Metabolic Stress & Joint-Friendly Volume",
@@ -570,7 +588,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
     exercises: [
       {
         id: "d6-ex1",
-        workoutDayId: 6,
+        workoutDayId: "saturday",
         name: "Arnold Press",
         order: 1,
         targetSets: 4,
@@ -589,7 +607,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d6-ex2",
-        workoutDayId: 6,
+        workoutDayId: "saturday",
         name: "Cable Lateral Raises",
         order: 2,
         targetSets: 3,
@@ -608,7 +626,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d6-ex3",
-        workoutDayId: 6,
+        workoutDayId: "saturday",
         name: "Rear Delt Dumbbell Flys",
         order: 3,
         targetSets: 3,
@@ -627,7 +645,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d6-ex4",
-        workoutDayId: 6,
+        workoutDayId: "saturday",
         name: "Dumbbell Romanian Deadlifts",
         order: 4,
         targetSets: 3,
@@ -646,7 +664,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d6-ex5",
-        workoutDayId: 6,
+        workoutDayId: "saturday",
         name: "Walking Lunges",
         order: 5,
         targetSets: 3,
@@ -665,7 +683,7 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
       },
       {
         id: "d6-ex6",
-        workoutDayId: 6,
+        workoutDayId: "saturday",
         name: "Standing Calf Raises",
         order: 6,
         targetSets: 4,
@@ -685,10 +703,13 @@ export const WORKOUT_PROGRAM: WorkoutDay[] = [
     ],
   },
   {
-    id: 7,
+    id: "sunday",
+    weekday: "sunday",
+    displayName: "Sunday",
+    shortName: "SUN",
     dayNumber: 7,
-    title: "DAY 7",
-    subtitle: "REST / ACTIVE RECOVERY",
+    title: "REST / ACTIVE RECOVERY",
+    subtitle: "Recovery & Restoration",
     category: "Recovery & Restoration",
     focus: "CNS Reset, Mobility & Tissue Repair",
     estimatedDurationMin: "30–45 MIN",

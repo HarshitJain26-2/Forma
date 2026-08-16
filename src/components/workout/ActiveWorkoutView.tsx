@@ -26,7 +26,10 @@ export const ActiveWorkoutView: React.FC<ActiveWorkoutViewProps> = ({ onBackToHo
     return null;
   }
 
-  const dayDef = program.find(p => p.id === activeSession.workoutDayId) || program[0];
+  const dayDef = program.find(
+    p => p.id === activeSession.workoutDayId || p.weekday === activeSession.weekday || p.dayNumber === activeSession.dayNumber
+  ) || program[0];
+
   const totalExercises = activeSession.exerciseLogs.length;
   const completedExercises = activeSession.exerciseLogs.filter(e => e.completed).length;
   const percentComplete = totalExercises > 0 
@@ -70,7 +73,7 @@ export const ActiveWorkoutView: React.FC<ActiveWorkoutViewProps> = ({ onBackToHo
               WORKOUT IN PROGRESS
             </span>
             <h1 className="text-xl font-display font-black tracking-tight text-white uppercase">
-              {activeSession.title}
+              {dayDef.displayName.toUpperCase()} — {dayDef.title}
             </h1>
           </div>
           {dayDef.variation && (

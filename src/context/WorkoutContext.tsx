@@ -10,7 +10,8 @@ import {
   UserSettings, 
   WorkoutDay, 
   WorkoutSession, 
-  WorkoutStatus 
+  WorkoutStatus, 
+  Weekday 
 } from '../types/workout';
 import { WORKOUT_PROGRAM } from '../data/workoutProgram';
 import { generateSeedData, INITIAL_ACHIEVEMENTS } from '../data/seedData';
@@ -19,6 +20,7 @@ import { migrateStorageIfNeeded } from '../storage/storageVersion';
 import { checkExerciseVolumePR, checkSetForPR } from '../engine/prEngine';
 import { calculateSessionVolume } from '../utils/calculations';
 import { sound } from '../utils/audio';
+import { getCurrentWeekday, getWeekdayFromDayNumber } from '../utils/dates';
 
 interface RestTimerState {
   isRunning: boolean;
@@ -39,7 +41,7 @@ interface WorkoutContextType {
   // Active workout
   activeSession: WorkoutSession | null;
   workoutDuration: number;
-  startWorkout: (dayNumber: number) => void;
+  startWorkout: (dayId: Weekday | number | string) => void;
   discardWorkout: () => void;
   completeWorkout: (notes?: string, overallRpe?: number, energyRating?: number) => void;
   toggleSetComplete: (exerciseId: string, setIndex: number) => void;
@@ -74,7 +76,7 @@ interface WorkoutContextType {
   importBackup: (json: string) => { success: boolean; error?: string };
   resetAllData: () => void;
 
-  // Current cycle day helper
+  // Calendar weekday helpers
   todaySplitDay: WorkoutDay;
   nextSplitDay: WorkoutDay;
 }
@@ -221,9 +223,17 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }));
   };
 
-  // Start a new workout session
-  const startWorkout = (dayNumber: number) => {
-    const dayDef = WORKOUT_PROGRAM.find(d => d.dayNumber === dayNumber) || WORKOUT_PROGRAM[0];
+  // Start a new workout session by Weekday or Day number
+  const startWorkout = (dayId: Weekday | number | string) => {
+    let dayDef: WorkoutDay | undefined;
+    if (typeof dayId === 'string') {
+      dayDef = WORKOUT_PROGRAM.find(d => d.weekday === dayId || d.id === dayId);
+    } else if (typeof dayId === 'number') {
+      dayDef = WORKOUT_PROGRAM.find(d => d.dayNumber === dayId);
+    }
+    if (!dayDef) {
+      dayDef = WORKOUT_PROGRAM[0];
+    }
     if (dayDef.isRestDay) return;
 
     // Build initial exercise logs with pre-filled baseline weights
@@ -265,8 +275,9 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const newSession: WorkoutSession = {
       id: `session-${Date.now()}`,
       workoutDayId: dayDef.id,
+      weekday: dayDef.weekday,
       dayNumber: dayDef.dayNumber,
-      title: `${dayDef.title} — ${dayDef.subtitle}`,
+      title: `${dayDef.displayName.toUpperCase()} — ${dayDef.title}`,
       variation: dayDef.variation,
       status: 'IN_PROGRESS',
       startedAt: Date.now(),
@@ -293,7 +304,9 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const toggleSetComplete = (exerciseId: string, setIndex: number) => {
     if (!activeSession) return;
 
-    const dayDef = WORKOUT_PROGRAM.find(d => d.id === activeSession.workoutDayId);
+    const dayDef = WORKOUT_PROGRAM.find(
+      d => d.id === activeSession.workoutDayId || d.weekday === activeSession.weekday || d.dayNumber === activeSession.dayNumber
+    );
     const exerciseDef = dayDef?.exercises.find(e => e.id === exerciseId);
 
     const updatedLogs = activeSession.exerciseLogs.map(exLog => {
@@ -426,7 +439,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!activeSession) return;
     const updatedLogs = activeSession.exerciseLogs.map(exLog => {
       if (exLog.exerciseId !== exerciseId) return exLog;
-      if (exLog.sets.length <= 1) return exLog; // Keep at least 1 set
+      if (exLog.sets.length <= 1) return exLog;
       const updatedSets = exLog.sets
         .filter((_, idx) => idx !== setIndex)
         .map((s, idx) => ({ ...s, setNumber: idx + 1 }));
@@ -458,7 +471,9 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const totalVolume = calculateSessionVolume(activeSession);
     
     // Check for Exercise-level Volume PRs
-    const dayDef = WORKOUT_PROGRAM.find(d => d.id === activeSession.workoutDayId);
+    const dayDef = WORKOUT_PROGRAM.find(
+      d => d.id === activeSession.workoutDayId || d.weekday === activeSession.weekday || d.dayNumber === activeSession.dayNumber
+    );
     let finalPRs: PersonalRecord[] = [...(activeSession.prsAchieved || [])];
 
     activeSession.exerciseLogs.forEach(exLog => {
@@ -585,23 +600,27 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setWorkoutDuration(0);
   };
 
-  // Helpers for Today and Next Split Day
+  // CALENDAR-AWARE AUTOMATIC DETERMINATION OF TODAY'S WORKOUT
   const todaySplitDay = useMemo(() => {
-    // If sessions exist, determine next scheduled day based on the last completed session
-    const lastSession = sessions
-      .filter(s => s.status === 'COMPLETED')
-      .sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))[0];
-
-    if (!lastSession) return WORKOUT_PROGRAM[2]; // Default to Day 3 for demo showcase
-
-    let nextDayNum = (lastSession.dayNumber % 7) + 1;
-    return WORKOUT_PROGRAM.find(d => d.dayNumber === nextDayNum) || WORKOUT_PROGRAM[0];
-  }, [sessions]);
+    const currentWeekday = getCurrentWeekday();
+    return WORKOUT_PROGRAM.find(d => d.weekday === currentWeekday) || WORKOUT_PROGRAM[0];
+  }, []);
 
   const nextSplitDay = useMemo(() => {
-    let nextNextDay = (todaySplitDay.dayNumber % 7) + 1;
-    return WORKOUT_PROGRAM.find(d => d.dayNumber === nextNextDay) || WORKOUT_PROGRAM[0];
-  }, [todaySplitDay]);
+    const day = new Date().getDay();
+    const tomorrowDay = (day + 1) % 7;
+    const mapping: { [key: number]: Weekday } = {
+      0: 'sunday',
+      1: 'monday',
+      2: 'tuesday',
+      3: 'wednesday',
+      4: 'thursday',
+      5: 'friday',
+      6: 'saturday',
+    };
+    const tomorrowWeekday = mapping[tomorrowDay] || 'monday';
+    return WORKOUT_PROGRAM.find(d => d.weekday === tomorrowWeekday) || WORKOUT_PROGRAM[0];
+  }, []);
 
   return (
     <WorkoutContext.Provider

@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useWorkout } from '../../context/WorkoutContext';
 import { formatDistanceOrTime, formatVolume } from '../../utils/units';
-import { CheckCircle, Flame, Trophy, Award, Star } from 'lucide-react';
+import { CheckCircle, Flame, Trophy, Star } from 'lucide-react';
 
 export const WorkoutCompletionModal: React.FC = () => {
-  const { completedSummarySession, dismissCompletedSummary, settings } = useWorkout();
-  const [notes, setNotes] = useState('');
+  const { completedSummarySession, dismissCompletedSummary, settings, program } = useWorkout();
   const [energyRating, setEnergyRating] = useState(5);
-  const [overallRpe, setOverallRpe] = useState(8);
 
   if (!completedSummarySession) return null;
 
@@ -16,6 +14,14 @@ export const WorkoutCompletionModal: React.FC = () => {
   const totalSets = completedSummarySession.totalSets;
   const totalVolume = completedSummarySession.totalVolumeKg;
   const prsCount = completedSummarySession.prsAchieved?.length || 0;
+
+  const dayDef = program.find(
+    p => p.id === completedSummarySession.workoutDayId || p.weekday === completedSummarySession.weekday || p.dayNumber === completedSummarySession.dayNumber
+  );
+
+  const displayTitle = dayDef 
+    ? `${dayDef.displayName.toUpperCase()} — ${dayDef.title}` 
+    : completedSummarySession.title;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl overflow-y-auto p-4 flex items-center justify-center animate-scale-in">
@@ -33,8 +39,8 @@ export const WorkoutCompletionModal: React.FC = () => {
           WORKOUT COMPLETE
         </h2>
 
-        <div className="text-sm font-semibold text-text-secondary mb-4 uppercase tracking-wider">
-          {completedSummarySession.title}
+        <div className="text-sm font-semibold text-primary mb-4 uppercase tracking-wider">
+          {displayTitle}
         </div>
 
         {/* Time Badge */}
