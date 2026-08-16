@@ -4,7 +4,6 @@
     "slug": "forma-gym-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#000000",
     "splash": {
@@ -20,9 +19,6 @@
         "backgroundColor": "#000000"
       },
       "userInterfaceStyle": "dark"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     }
   }
 }
