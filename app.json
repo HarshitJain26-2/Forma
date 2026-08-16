@@ -18,7 +18,13 @@
       "adaptiveIcon": {
         "backgroundColor": "#000000"
       },
-      "userInterfaceStyle": "dark"
+      "userInterfaceStyle": "dark",
+      "package": "com.sapanajain.formagymtracker"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "98f6e3f8-fffc-4efd-bb11-e981b2455a8e"
+      }
     }
   }
 }
