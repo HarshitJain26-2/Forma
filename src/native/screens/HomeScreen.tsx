@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
 import { useNativeWorkout } from '../context/NativeWorkoutContext';
 import { 
   calculateCurrentStreak, 
@@ -73,8 +73,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </Text>
           <Text style={styles.dashboardTitle}>PROGRESSION DASHBOARD</Text>
         </View>
-        <View style={styles.headerIconBox}>
-          <Sparkles size={18} color={theme.colors.primary} />
+        <View style={styles.headerLogoContainer}>
+          <Image
+            source={require('../../../assets/logo.png')}
+            style={styles.headerLogoImage}
+            resizeMode="contain"
+          />
         </View>
       </View>
 
@@ -346,15 +350,20 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginTop: 2,
   },
-  headerIconBox: {
-    width: 38,
-    height: 38,
+  headerLogoContainer: {
+    width: 44,
+    height: 44,
     borderRadius: 14,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#000000',
     borderWidth: 1,
     borderColor: theme.colors.border,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  headerLogoImage: {
+    width: 40,
+    height: 40,
   },
   activeBanner: {
     backgroundColor: theme.colors.card,

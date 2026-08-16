@@ -4,27 +4,30 @@
     "slug": "forma-gym-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#000000",
     "splash": {
-      "backgroundColor": "#000000",
-      "resizeMode": "contain"
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": true,
-      "userInterfaceStyle": "dark"
+      "userInterfaceStyle": "dark",
+      "bundleIdentifier": "com.forma.gymtracker",
+      "icon": "./assets/icon.png"
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#000000"
-      },
+      "package": "com.forma.gymtracker",
       "userInterfaceStyle": "dark",
-      "package": "com.sapanajain.formagymtracker"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "98f6e3f8-fffc-4efd-bb11-e981b2455a8e"
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
       }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     }
   }
 }
