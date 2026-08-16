@@ -1,0 +1,30 @@
+# Intermediate & temporary files
+.tmp/
+
+# Environment and sensitive keys
+.env
+credentials.json
+token.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+# Build output & node
+node_modules/
+dist/
+dist-ssr/
+*.local
+tsconfig.tsbuildinfo
