@@ -18,6 +18,7 @@ import { checkExerciseVolumePR, checkSetForPR } from '../../engine/prEngine';
 import { calculateSessionVolume } from '../../utils/calculations';
 import { getCurrentWeekday } from '../../utils/dates';
 import { haptic } from '../utils/haptics';
+import { soundEffects } from '../utils/sound';
 
 interface RestTimerState {
   isRunning: boolean;
@@ -162,7 +163,19 @@ export const NativeWorkoutProvider: React.FC<{ children: React.ReactNode }> = ({
           haptic.warning();
         }
 
+        // 3, 2, 1 countdown audio tick
+        if (next === 3 || next === 2 || next === 1) {
+          if (settings.soundEnabled) {
+            soundEffects.playCountdownTick();
+          }
+          haptic.light();
+        }
+
+        // Timer finished
         if (next === 0) {
+          if (settings.soundEnabled) {
+            soundEffects.playTimerEnd();
+          }
           haptic.heavy();
           return { ...prev, isRunning: false, secondsRemaining: 0 };
         }
@@ -172,7 +185,7 @@ export const NativeWorkoutProvider: React.FC<{ children: React.ReactNode }> = ({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [restTimer.isRunning, restTimer.secondsRemaining]);
+  }, [restTimer.isRunning, restTimer.secondsRemaining, settings.soundEnabled]);
 
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
     const updated = { ...settings, ...newSettings };
@@ -182,6 +195,9 @@ export const NativeWorkoutProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const startRestTimer = (seconds?: number) => {
     const dur = seconds || settings.defaultRestSeconds || 90;
+    if (settings.soundEnabled) {
+      soundEffects.playTimerStart();
+    }
     setRestTimer({
       isRunning: true,
       secondsRemaining: dur,
