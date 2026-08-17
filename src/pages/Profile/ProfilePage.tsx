@@ -25,6 +25,7 @@ import {
   Sparkles 
 } from 'lucide-react';
 import { BodyMeasurement } from '../../types/workout';
+import { FormaLogo } from '../../components/brand/FormaLogo';
 
 export const ProfilePage: React.FC = () => {
   const { 
@@ -151,23 +152,27 @@ export const ProfilePage: React.FC = () => {
     <div className="min-h-screen pb-32 pt-6 px-4 max-w-lg mx-auto space-y-6">
       {/* HEADER & ATHLETE IDENTITY */}
       <div className="bg-card border border-border rounded-3xl p-5 relative overflow-hidden">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 rounded-2xl bg-primary text-black font-display font-black text-2xl flex items-center justify-center shadow-glow-md">
-            {settings.userName.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="text-xl font-display font-black text-white uppercase">
-                {settings.userName}
-              </h1>
-              <span className="px-2 py-0.5 bg-primary/20 border border-primary/40 text-primary text-[10px] font-mono font-bold uppercase rounded-md">
-                PRO ATHLETE
-              </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 rounded-2xl bg-primary text-black font-display font-black text-2xl flex items-center justify-center shadow-glow-md">
+              {settings.userName.charAt(0).toUpperCase()}
             </div>
-            <div className="text-xs font-mono text-text-secondary mt-1">
-              Active Split: 6-Day Structured Hypertrophy
+            <div>
+              <div className="flex items-center space-x-2">
+                <h1 className="text-xl font-display font-black text-white uppercase">
+                  {settings.userName}
+                </h1>
+                <span className="px-2 py-0.5 bg-primary/20 border border-primary/40 text-primary text-[10px] font-mono font-bold uppercase rounded-md">
+                  PRO ATHLETE
+                </span>
+              </div>
+              <div className="text-xs font-mono text-text-secondary mt-1">
+                Active Split: 6-Day Structured Hypertrophy
+              </div>
             </div>
           </div>
+
+          <FormaLogo size="sm" variant="icon" withGlow={true} />
         </div>
 
         {/* STATS OVERVIEW MATRIX */}

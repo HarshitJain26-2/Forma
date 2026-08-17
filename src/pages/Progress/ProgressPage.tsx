@@ -11,6 +11,7 @@ import {
   calculateWeeklyWorkouts 
 } from '../../utils/calculations';
 import { formatDistanceOrTime, formatVolume } from '../../utils/units';
+import { FormaLogo } from '../../components/brand/FormaLogo';
 import { 
   TrendingUp, 
   Dumbbell, 
@@ -53,14 +54,18 @@ export const ProgressPage: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-32 pt-6 px-4 max-w-lg mx-auto space-y-6">
-      {/* PAGE TITLE */}
-      <div>
-        <span className="text-[11px] font-mono font-bold tracking-widest text-primary uppercase flex items-center">
-          <TrendingUp className="w-3.5 h-3.5 mr-1" /> INTELLIGENCE & ANALYTICS
-        </span>
-        <h1 className="text-2xl font-display font-black tracking-tight text-white uppercase mt-0.5">
-          PROGRESS & METRICS
-        </h1>
+      {/* PAGE TITLE WITH BRAND LOGO */}
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="text-[11px] font-mono font-bold tracking-widest text-primary uppercase flex items-center">
+            <TrendingUp className="w-3.5 h-3.5 mr-1" /> INTELLIGENCE & ANALYTICS
+          </span>
+          <h1 className="text-2xl font-display font-black tracking-tight text-white uppercase mt-0.5">
+            PROGRESS & METRICS
+          </h1>
+        </div>
+
+        <FormaLogo size="sm" variant="icon" withGlow={true} />
       </div>
 
       {completedSessions.length === 0 ? (

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useWorkout } from '../../context/WorkoutContext';
 import { RoutineEditorModal } from '../../components/workout/RoutineEditorModal';
+import { FormaLogo } from '../../components/brand/FormaLogo';
 import { 
   calculateCurrentStreak, 
   calculateTotalVolume, 
@@ -70,7 +71,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   return (
     <div className="min-h-screen pb-32 pt-6 px-4 max-w-lg mx-auto space-y-6">
-      {/* HEADER SECTION */}
+      {/* HEADER SECTION WITH FORMA BRAND LOGO */}
       <div className="flex items-center justify-between">
         <div>
           <span className="text-[11px] font-mono font-bold tracking-widest text-primary uppercase">
@@ -81,9 +82,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           </h1>
         </div>
 
-        <div className="w-10 h-10 rounded-2xl bg-surface border border-border flex items-center justify-center text-primary shadow-glow-sm">
-          <Sparkles className="w-5 h-5" />
-        </div>
+        <FormaLogo size="md" variant="icon" withGlow={true} />
       </div>
 
       {/* ACTIVE WORKOUT BANNER (REFRESH RECOVERY) */}

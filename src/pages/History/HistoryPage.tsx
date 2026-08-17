@@ -17,6 +17,7 @@ import {
   Layers 
 } from 'lucide-react';
 import { WorkoutSession } from '../../types/workout';
+import { FormaLogo } from '../../components/brand/FormaLogo';
 
 export const HistoryPage: React.FC = () => {
   const { sessions, prs, settings, program } = useWorkout();
@@ -31,22 +32,23 @@ export const HistoryPage: React.FC = () => {
   const completedSessions = useMemo(() => {
     return sessions
       .filter(s => s.status === 'COMPLETED')
-      .sort((a, b) => (b.completedAt || b.startedAt) - (a.completedAt || a.startedAt));
+      .sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
   }, [sessions]);
 
-  // Exercise history aggregation
-  const allExercises = useMemo(() => {
-    const list: { id: string; name: string }[] = [];
-    WORKOUT_PROGRAM.forEach(day => {
+  // All unique exercises available across program and completed sessions
+  const exerciseOptions = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; category: string }>();
+    program.forEach(day => {
       day.exercises.forEach(ex => {
-        if (!list.some(e => e.id === ex.id)) {
-          list.push({ id: ex.id, name: ex.name });
+        if (!map.has(ex.id)) {
+          map.set(ex.id, { id: ex.id, name: ex.name, category: ex.primaryMuscle });
         }
       });
     });
-    return list;
-  }, []);
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [program]);
 
+  // Historical progression data for the selected exercise
   const exerciseLogsHistory = useMemo(() => {
     const now = Date.now();
     const filterCutoffs = {
@@ -120,13 +122,16 @@ export const HistoryPage: React.FC = () => {
     <div className="min-h-screen pb-32 pt-6 px-4 max-w-lg mx-auto space-y-6">
       {/* HEADER & VIEW TOGGLE */}
       <div className="flex items-center justify-between">
-        <div>
-          <span className="text-[11px] font-mono font-bold tracking-widest text-primary uppercase flex items-center">
-            <History className="w-3.5 h-3.5 mr-1" /> TRAINING LOGBOOK
-          </span>
-          <h1 className="text-2xl font-display font-black tracking-tight text-white uppercase mt-0.5">
-            WORKOUT HISTORY
-          </h1>
+        <div className="flex items-center space-x-3">
+          <FormaLogo size="sm" variant="icon" withGlow={true} />
+          <div>
+            <span className="text-[11px] font-mono font-bold tracking-widest text-primary uppercase flex items-center">
+              <History className="w-3.5 h-3.5 mr-1" /> TRAINING LOGBOOK
+            </span>
+            <h1 className="text-2xl font-display font-black tracking-tight text-white uppercase mt-0.5">
+              WORKOUT HISTORY
+            </h1>
+          </div>
         </div>
 
         <div className="flex bg-surface border border-border rounded-xl p-1">
@@ -309,7 +314,7 @@ export const HistoryPage: React.FC = () => {
               onChange={e => setSelectedExerciseId(e.target.value)}
               className="w-full bg-card border border-border focus:border-primary text-white text-xs font-mono font-bold rounded-2xl py-3 px-3.5 outline-none cursor-pointer"
             >
-              {allExercises.map(ex => (
+              {exerciseOptions.map(ex => (
                 <option key={ex.id} value={ex.id} className="bg-surface text-white">
                   {ex.name}
                 </option>

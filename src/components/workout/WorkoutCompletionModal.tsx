@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useWorkout } from '../../context/WorkoutContext';
 import { formatDistanceOrTime, formatVolume } from '../../utils/units';
+import { FormaLogo } from '../brand/FormaLogo';
 import { CheckCircle, Flame, Trophy, Star } from 'lucide-react';
 
 export const WorkoutCompletionModal: React.FC = () => {
@@ -26,9 +27,14 @@ export const WorkoutCompletionModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl overflow-y-auto p-4 flex items-center justify-center animate-scale-in">
       <div className="bg-card border border-border w-full max-w-md rounded-3xl p-6 relative flex flex-col items-center text-center shadow-2xl my-auto">
-        {/* Celebration Header */}
-        <div className="w-16 h-16 rounded-3xl bg-primary/10 border border-primary flex items-center justify-center mb-4 shadow-glow-md">
-          <CheckCircle className="w-8 h-8 text-primary" />
+        
+        {/* Brand Logo & Celebration Header */}
+        <div className="mb-4">
+          <FormaLogo size="md" variant="compact" withGlow={true} />
+        </div>
+
+        <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary flex items-center justify-center mb-3 shadow-glow-md">
+          <CheckCircle className="w-7 h-7 text-primary" />
         </div>
 
         <span className="text-[11px] font-mono font-bold tracking-widest text-primary uppercase mb-1">

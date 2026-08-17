@@ -1,5 +1,6 @@
 import React from 'react';
 import { useWorkout } from '../../context/WorkoutContext';
+import { FormaLogo } from '../brand/FormaLogo';
 import { Trophy, Flame, Zap, X } from 'lucide-react';
 
 export const PRCelebrationModal: React.FC = () => {
@@ -18,8 +19,13 @@ export const PRCelebrationModal: React.FC = () => {
           <X className="w-4 h-4" />
         </button>
 
+        {/* Brand Logo */}
+        <div className="mb-2">
+          <FormaLogo size="xs" variant="badge" withGlow={false} />
+        </div>
+
         {/* PR Icon Badge */}
-        <div className="w-16 h-16 rounded-2xl bg-primary/20 border border-primary flex items-center justify-center mb-4 shadow-glow-md animate-bounce">
+        <div className="w-16 h-16 rounded-2xl bg-primary/20 border border-primary flex items-center justify-center mb-3 shadow-glow-md animate-bounce">
           <Flame className="w-8 h-8 text-primary fill-primary" />
         </div>
 

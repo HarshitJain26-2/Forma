@@ -10,6 +10,7 @@ import { RestTimerDock } from './components/workout/RestTimerDock';
 import { PRCelebrationModal } from './components/workout/PRCelebrationModal';
 import { WorkoutCompletionModal } from './components/workout/WorkoutCompletionModal';
 import { RoutineEditorModal } from './components/workout/RoutineEditorModal';
+import { FormaLogo } from './components/brand/FormaLogo';
 import { Play, Edit3 } from 'lucide-react';
 import { Weekday } from './types/workout';
 
@@ -40,13 +41,16 @@ const AppContent: React.FC = () => {
       return (
         <div className="min-h-screen pb-32 pt-6 px-4 max-w-lg mx-auto space-y-6 animate-scale-in">
           <div className="flex items-center justify-between">
-            <div>
-              <span className="text-[11px] font-mono font-bold tracking-widest text-primary uppercase">
-                SELECT WORKOUT SESSION
-              </span>
-              <h1 className="text-2xl font-display font-black tracking-tight text-white uppercase mt-0.5">
-                START TRAINING
-              </h1>
+            <div className="flex items-center space-x-3">
+              <FormaLogo size="sm" variant="icon" withGlow={true} />
+              <div>
+                <span className="text-[11px] font-mono font-bold tracking-widest text-primary uppercase">
+                  SELECT WORKOUT SESSION
+                </span>
+                <h1 className="text-2xl font-display font-black tracking-tight text-white uppercase mt-0.5">
+                  START TRAINING
+                </h1>
+              </div>
             </div>
 
             <button
