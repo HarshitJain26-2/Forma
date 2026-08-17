@@ -39,6 +39,7 @@ export interface Exercise {
   isFailureBased: boolean;
   defaultWeightKg: number;
   weightIncrementKg: number;
+  restSeconds?: number;
 }
 
 export interface WorkoutDay {
@@ -67,6 +68,8 @@ export interface SetLog {
   completed: boolean;
   isPR?: boolean;
   timestamp?: number;
+  durationSeconds?: number;   // Time spent performing the set
+  restSecondsTaken?: number;  // Rest time after the set
 }
 
 export interface ExerciseLog {
@@ -79,6 +82,7 @@ export interface ExerciseLog {
   note?: string;
   completed: boolean;
   isFailureBased?: boolean;
+  restSeconds?: number;
 }
 
 export interface PersonalRecord {

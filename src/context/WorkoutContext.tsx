@@ -46,6 +46,7 @@ interface WorkoutContextType {
   completeWorkout: (notes?: string, overallRpe?: number, energyRating?: number) => void;
   toggleSetComplete: (exerciseId: string, setIndex: number) => void;
   updateSetValues: (exerciseId: string, setIndex: number, weightKg: number, reps: number, rpe?: number) => void;
+  updateSetDuration: (exerciseId: string, setIndex: number, durationSeconds: number) => void;
   addSet: (exerciseId: string) => void;
   removeSet: (exerciseId: string, setIndex: number) => void;
   updateExerciseNote: (exerciseId: string, note: string) => void;
@@ -404,8 +405,9 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         } catch (e) {}
       }
 
-      // Automatically launch rest timer if not already running
-      startRestTimer(settings.defaultRestSeconds);
+      // Automatically launch rest timer using exercise-specific rest or user default
+      const customRest = exerciseDef?.restSeconds || targetExLog?.restSeconds;
+      startRestTimer(customRest || settings.defaultRestSeconds);
     }
 
     const updatedSession: WorkoutSession = {
@@ -416,6 +418,19 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     setActiveSession(updatedSession);
+  };
+
+  const updateSetDuration = (exerciseId: string, setIndex: number, durationSeconds: number) => {
+    if (!activeSession) return;
+    const updatedLogs = activeSession.exerciseLogs.map(exLog => {
+      if (exLog.exerciseId !== exerciseId) return exLog;
+      const updatedSets = exLog.sets.map((set, idx) => {
+        if (idx !== setIndex) return set;
+        return { ...set, durationSeconds };
+      });
+      return { ...exLog, sets: updatedSets };
+    });
+    setActiveSession({ ...activeSession, exerciseLogs: updatedLogs });
   };
 
   const updateSetValues = (
@@ -922,6 +937,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         completeWorkout,
         toggleSetComplete,
         updateSetValues,
+        updateSetDuration,
         addSet,
         removeSet,
         updateExerciseNote,

@@ -12,6 +12,7 @@ export interface ExerciseEditableData {
   primaryMuscle?: MuscleGroup;
   defaultWeightKg?: number;
   isFailureBased?: boolean;
+  restSeconds?: number;
   specialInstruction?: string;
   note?: string;
 }
@@ -38,6 +39,8 @@ const MUSCLE_GROUPS: { key: MuscleGroup; label: string }[] = [
 
 const EQUIPMENT_OPTIONS: Equipment[] = ['barbell', 'dumbbell', 'cable', 'machine', 'bodyweight', 'ez_bar'];
 
+const REST_TIME_PRESETS = [30, 45, 60, 90, 120, 150, 180, 240];
+
 export const EditExerciseModal: React.FC<EditExerciseModalProps> = ({
   isOpen,
   onClose,
@@ -54,6 +57,7 @@ export const EditExerciseModal: React.FC<EditExerciseModalProps> = ({
   const [primaryMuscle, setPrimaryMuscle] = useState<MuscleGroup>('chest');
   const [defaultWeightKg, setDefaultWeightKg] = useState(20);
   const [isFailureBased, setIsFailureBased] = useState(false);
+  const [restSeconds, setRestSeconds] = useState(90);
   const [note, setNote] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -67,6 +71,7 @@ export const EditExerciseModal: React.FC<EditExerciseModalProps> = ({
       setPrimaryMuscle(initialData.primaryMuscle || 'chest');
       setDefaultWeightKg(initialData.defaultWeightKg || 20);
       setIsFailureBased(initialData.isFailureBased || false);
+      setRestSeconds(initialData.restSeconds || 90);
       setNote(initialData.note || initialData.specialInstruction || '');
       setShowDeleteConfirm(false);
     }
@@ -88,6 +93,7 @@ export const EditExerciseModal: React.FC<EditExerciseModalProps> = ({
       primaryMuscle,
       defaultWeightKg: isFailureBased ? 0 : defaultWeightKg,
       isFailureBased,
+      restSeconds,
       specialInstruction: note.trim(),
       note: note.trim(),
     });
@@ -251,6 +257,31 @@ export const EditExerciseModal: React.FC<EditExerciseModalProps> = ({
                   Failure-Based
                 </span>
               </label>
+            </div>
+          </div>
+
+          {/* Rest Timer Between Sets */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[10px] font-mono font-bold uppercase text-text-secondary">
+                Rest Timer Per Set: <span className="text-primary font-bold">{restSeconds}s ({Math.floor(restSeconds / 60)}m {restSeconds % 60 ? `${restSeconds % 60}s` : ''})</span>
+              </label>
+            </div>
+            <div className="grid grid-cols-4 gap-1.5">
+              {REST_TIME_PRESETS.map(sec => (
+                <button
+                  key={sec}
+                  type="button"
+                  onClick={() => setRestSeconds(sec)}
+                  className={`py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
+                    restSeconds === sec
+                      ? 'bg-primary text-black shadow-glow-sm'
+                      : 'bg-surface border border-border text-text-secondary hover:text-white'
+                  }`}
+                >
+                  {sec}s
+                </button>
+              ))}
             </div>
           </div>
 

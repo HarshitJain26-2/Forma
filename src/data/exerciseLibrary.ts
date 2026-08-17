@@ -14,6 +14,7 @@ export interface ExerciseTemplate {
   targetSets: number;
   targetRepMin: number;
   targetRepMax: number;
+  restSeconds?: number;
   specialInstruction?: string;
 }
 
@@ -749,5 +750,6 @@ export function createExerciseInstance(
     isFailureBased: template.isFailureBased ?? false,
     defaultWeightKg: template.defaultWeightKg || 20,
     weightIncrementKg: template.weightIncrementKg || 2.5,
+    restSeconds: template.restSeconds || 90,
   };
 }

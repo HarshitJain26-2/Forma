@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useWorkout } from '../../context/WorkoutContext';
 import { Exercise, ExerciseLog, SetLog } from '../../types/workout';
 import { generateProgressionRecommendation, getLastExercisePerformance } from '../../engine/progressionEngine';
@@ -13,7 +13,11 @@ import {
   MessageSquare, 
   Info, 
   TrendingUp, 
-  Sparkles 
+  Sparkles,
+  Timer,
+  Play,
+  Square,
+  Clock
 } from 'lucide-react';
 
 interface ExerciseCardProps {
@@ -45,15 +49,58 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     sessions, 
     settings, 
     toggleSetComplete, 
-    updateSetValues, 
+    updateSetValues,
+    updateSetDuration, 
     addSet, 
     removeSet, 
-    updateExerciseNote 
+    updateExerciseNote,
+    startRestTimer
   } = useWorkout();
 
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [noteText, setNoteText] = useState(exerciseLog.note || '');
   const [showRpeColumn, setShowRpeColumn] = useState(false);
+
+  // Live stopwatch state for tracking time-under-tension / timed hold per set
+  const [activeTimingSetIdx, setActiveTimingSetIdx] = useState<number | null>(null);
+  const [elapsedSetSeconds, setElapsedSetSeconds] = useState<number>(0);
+  const timerIntervalRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (activeTimingSetIdx !== null) {
+      timerIntervalRef.current = setInterval(() => {
+        setElapsedSetSeconds(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    }
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, [activeTimingSetIdx]);
+
+  const handleStartSetTimer = (setIdx: number) => {
+    if (activeTimingSetIdx === setIdx) {
+      // Stop timer and record
+      updateSetDuration(exercise.id, setIdx, elapsedSetSeconds);
+      setActiveTimingSetIdx(null);
+    } else {
+      // Start timer for this set
+      setActiveTimingSetIdx(setIdx);
+      setElapsedSetSeconds(0);
+    }
+  };
+
+  const formatSecs = (sec: number) => {
+    const mins = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${mins}:${s.toString().padStart(2, '0')}`;
+  };
 
   // Compute previous performance & progressive overload recommendations
   const previousPerformance = getLastExercisePerformance(sessions, exercise.id);
@@ -227,6 +274,16 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
               <div className="flex items-center space-x-2">
                 <button
                   type="button"
+                  onClick={() => startRestTimer(exercise.restSeconds || exerciseLog.restSeconds || settings.defaultRestSeconds)}
+                  className="text-[10px] font-mono text-primary/80 hover:text-primary transition-colors flex items-center space-x-1"
+                  title="Start Rest Timer"
+                >
+                  <Timer className="w-3 h-3" />
+                  <span>{exercise.restSeconds || exerciseLog.restSeconds || settings.defaultRestSeconds}s REST</span>
+                </button>
+                <span className="text-neutral-600">•</span>
+                <button
+                  type="button"
                   onClick={() => setShowRpeColumn(!showRpeColumn)}
                   className="text-[10px] text-text-secondary hover:text-primary transition-colors underline"
                 >
@@ -308,10 +365,52 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                     )}
                   </div>
 
-                  {/* ACTION CONTROLS: REMOVE & COMPLETE CHECKBOX */}
-                  <div className="flex items-center space-x-2">
+                  {/* ACTION CONTROLS: SET TIMER, REMOVE & COMPLETE CHECKBOX */}
+                  <div className="flex items-center space-x-1.5 sm:space-x-2">
+                    {/* LIVE SET STOPWATCH / DURATION TIMER BUTTON */}
+                    {activeTimingSetIdx === setIdx ? (
+                      <button
+                        type="button"
+                        onClick={() => handleStartSetTimer(setIdx)}
+                        className="px-2 py-1 bg-primary text-black font-mono font-black text-xs rounded-xl flex items-center space-x-1 animate-pulse shadow-glow-sm"
+                        title="Stop & Save Set Duration"
+                      >
+                        <Square className="w-3 h-3 fill-black" />
+                        <span>{formatSecs(elapsedSetSeconds)}</span>
+                      </button>
+                    ) : set.durationSeconds ? (
+                      <button
+                        type="button"
+                        onClick={() => handleStartSetTimer(setIdx)}
+                        className="px-2 py-1 bg-surface border border-primary/40 text-primary font-mono text-[11px] font-bold rounded-xl flex items-center space-x-1 hover:border-primary transition-colors"
+                        title="Recorded set duration. Click to re-time."
+                      >
+                        <Clock className="w-3 h-3" />
+                        <span>{set.durationSeconds}s</span>
+                      </button>
+                    ) : !set.completed ? (
+                      <button
+                        type="button"
+                        onClick={() => handleStartSetTimer(setIdx)}
+                        className="p-1.5 text-text-secondary hover:text-primary transition-colors rounded-lg hover:bg-surface"
+                        title="Start live set execution timer (Stopwatch / Hold duration)"
+                      >
+                        <Timer className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => startRestTimer(exercise.restSeconds || exerciseLog.restSeconds || settings.defaultRestSeconds)}
+                        className="p-1.5 text-text-secondary hover:text-primary transition-colors rounded-lg hover:bg-surface"
+                        title="Restart rest timer for this set"
+                      >
+                        <Timer className="w-4 h-4 text-primary/70" />
+                      </button>
+                    )}
+
                     {exerciseLog.sets.length > 1 && !set.completed && (
                       <button
+                        type="button"
                         onClick={() => removeSet(exercise.id, setIdx)}
                         className="p-1.5 text-text-secondary hover:text-red-400 transition-colors"
                         title="Remove set"
@@ -321,7 +420,14 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                     )}
 
                     <button
-                      onClick={() => toggleSetComplete(exercise.id, setIdx)}
+                      type="button"
+                      onClick={() => {
+                        if (activeTimingSetIdx === setIdx) {
+                          updateSetDuration(exercise.id, setIdx, elapsedSetSeconds);
+                          setActiveTimingSetIdx(null);
+                        }
+                        toggleSetComplete(exercise.id, setIdx);
+                      }}
                       className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
                         set.completed
                           ? 'bg-primary text-black shadow-glow-sm scale-105'
