@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { WorkoutShareData } from '../../types/sharing';
 import { WorkoutShareCard, ShareCardCustomization } from './WorkoutShareCard';
 import { generateWorkoutShareImage } from '../../services/shareImageGenerator';
+import { shareWorkoutImageNative } from '../../services/nativeShareService';
 import { X, Share2, EyeOff, Loader2, Sparkles, Check, AlertTriangle, Download, RefreshCw } from 'lucide-react';
 
 interface ShareWorkoutSheetProps {
@@ -51,15 +52,24 @@ export const ShareWorkoutSheet: React.FC<ShareWorkoutSheetProps> = ({
       const result = await generateWorkoutShareImage(shareData, customization, userName || 'ATHLETE');
       setGeneratedImage({ dataUrl: result.dataUrl, file: result.file });
 
-      // Trigger native share or web fallback if handler provided
       if (onShare) {
         await onShare(customization, result.file, result.dataUrl);
       } else {
-        // Direct browser fallback download
-        const a = document.createElement('a');
-        a.href = result.dataUrl;
-        a.download = result.file.name;
-        a.click();
+        // Native Share attempt
+        const shareResult = await shareWorkoutImageNative({
+          title: `Forma — ${shareData.workoutTitle}`,
+          text: `Finished my ${shareData.workoutTitle} training session on Forma!`,
+          file: result.file,
+          dataUrl: result.dataUrl,
+        });
+
+        // If native share was not supported / available, download directly
+        if (shareResult.method === 'fallback') {
+          const a = document.createElement('a');
+          a.href = result.dataUrl;
+          a.download = result.file.name;
+          a.click();
+        }
       }
     } catch (err: any) {
       console.error('Share generation error:', err);
