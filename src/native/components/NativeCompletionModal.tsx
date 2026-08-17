@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet, Share } from 'react-native';
 import { useNativeWorkout } from '../context/NativeWorkoutContext';
 import { formatDistanceOrTime, formatVolume } from '../../utils/units';
 import { theme } from '../theme';
-import { CheckCircle, Flame, Trophy } from 'lucide-react-native';
+import { CheckCircle, Flame, Trophy, Share2 } from 'lucide-react-native';
 import { haptic } from '../utils/haptics';
 
 export const NativeCompletionModal: React.FC = () => {
@@ -24,6 +24,29 @@ export const NativeCompletionModal: React.FC = () => {
   const displayTitle = dayDef 
     ? `${dayDef.displayName.toUpperCase()} — ${dayDef.title}` 
     : completedSummarySession.title;
+
+  const handleShareWorkout = async () => {
+    haptic.medium();
+    const duration = formatDistanceOrTime(completedSummarySession.durationSeconds);
+    const volume = formatVolume(totalVolume, settings.units);
+    
+    let prText = '';
+    if (completedSummarySession.prsAchieved && completedSummarySession.prsAchieved.length > 0) {
+      prText = `\n🔥 ${completedSummarySession.prsAchieved.length} NEW PRs:\n` + 
+        completedSummarySession.prsAchieved.map(p => `• ${p.exerciseName}: ${p.details}`).join('\n');
+    }
+
+    const shareMessage = `⚡ FORMA WORKOUT COMPLETED ⚡\n\n🏋️ ${displayTitle}\n⏱️ Time: ${duration}\n📊 Volume: ${volume}\n🔢 Completed Sets: ${totalSets}${prText}\n\nTracked with Forma — Progressive Gym Intelligence.`;
+
+    try {
+      await Share.share({
+        title: `Forma — ${displayTitle}`,
+        message: shareMessage,
+      });
+    } catch (error) {
+      console.warn('Share error:', error);
+    }
+  };
 
   return (
     <Modal
@@ -98,16 +121,30 @@ export const NativeCompletionModal: React.FC = () => {
               </View>
             )}
 
-            {/* DONE CTA */}
-            <TouchableOpacity
-              onPress={() => {
-                haptic.medium();
-                dismissCompletedSummary();
-              }}
-              style={styles.doneButton}
-            >
-              <Text style={styles.doneButtonText}>DONE</Text>
-            </TouchableOpacity>
+            {/* ACTION BUTTONS: SHARE WORKOUT (PRIMARY) & DONE */}
+            <View style={styles.actionButtonsContainer}>
+              {/* PRIMARY SHARE BUTTON */}
+              <TouchableOpacity
+                onPress={handleShareWorkout}
+                style={styles.shareButton}
+                activeOpacity={0.85}
+              >
+                <Share2 size={18} color="#000000" strokeWidth={2.5} />
+                <Text style={styles.shareButtonText}>SHARE WORKOUT</Text>
+              </TouchableOpacity>
+
+              {/* SECONDARY DONE BUTTON */}
+              <TouchableOpacity
+                onPress={() => {
+                  haptic.medium();
+                  dismissCompletedSummary();
+                }}
+                style={styles.doneButton}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.doneButtonText}>DONE</Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
         </View>
       </View>
@@ -244,18 +281,47 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: theme.colors.primary,
   },
-  doneButton: {
+  actionButtonsContainer: {
     width: '100%',
-    backgroundColor: theme.colors.primary,
-    paddingVertical: 16,
-    borderRadius: 20,
-    alignItems: 'center',
+    gap: 10,
     marginTop: 8,
   },
-  doneButtonText: {
-    fontSize: 15,
+  shareButton: {
+    width: '100%',
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 15,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  shareButtonText: {
+    fontSize: 14,
     fontWeight: '900',
     color: '#000000',
     letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  doneButton: {
+    width: '100%',
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    paddingVertical: 14,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  doneButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.textSecondary,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
 });
