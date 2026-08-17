@@ -171,34 +171,56 @@ export const WorkoutShareCard = forwardRef<HTMLDivElement, WorkoutShareCardProps
 
         {/* 3. PR HIGHLIGHT BANNER (IF ANY) */}
         {hasPRs && (
-          <div className="bg-primary/10 border border-primary/50 rounded-2xl p-3 space-y-1.5 shadow-glow-sm">
+          <div className="bg-primary/10 border border-primary/50 rounded-2xl p-3.5 space-y-2 shadow-glow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-1.5">
-                <Flame className="w-3.5 h-3.5 text-primary fill-primary animate-pulse" />
-                <span className="text-[10px] font-mono font-black text-primary uppercase tracking-wider">
-                  {shareData.personalRecords.length} NEW PERSONAL RECORD{shareData.personalRecords.length > 1 ? 'S' : ''}
+                <Flame className="w-4 h-4 text-primary fill-primary animate-pulse" />
+                <span className="text-[11px] font-mono font-black text-primary uppercase tracking-wider">
+                  {shareData.personalRecords.length === 1 
+                    ? 'NEW PERSONAL RECORD' 
+                    : `${shareData.personalRecords.length} NEW PERSONAL RECORDS`}
                 </span>
               </div>
-              <Sparkles className="w-3 h-3 text-primary" />
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
             </div>
 
-            <div className="space-y-1">
-              {shareData.personalRecords.slice(0, 2).map((pr, idx) => (
-                <div key={idx} className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-white font-bold truncate max-w-[170px]">
-                    {pr.exerciseName}
-                  </span>
-                  <div className="flex items-center space-x-1.5 shrink-0">
-                    <span className="text-primary font-black">{pr.details}</span>
-                    {pr.deltaText && (
-                      <span className="text-[9px] text-black bg-primary px-1 rounded font-black">
-                        {pr.deltaText}
-                      </span>
-                    )}
-                  </div>
+            {shareData.personalRecords.length === 1 ? (
+              // Single PR Highlight Focus
+              <div className="space-y-1">
+                <div className="text-sm font-display font-bold text-white uppercase truncate">
+                  {shareData.personalRecords[0].exerciseName}
                 </div>
-              ))}
-            </div>
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-xl font-mono font-black text-primary">
+                    {shareData.personalRecords[0].details}
+                  </span>
+                  {shareData.personalRecords[0].deltaText && (
+                    <span className="text-[10px] font-mono font-black text-black bg-primary px-1.5 py-0.5 rounded">
+                      {shareData.personalRecords[0].deltaText}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              // Multiple PRs List
+              <div className="space-y-1.5">
+                {shareData.personalRecords.slice(0, 2).map((pr, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-xs font-mono">
+                    <span className="text-white font-bold truncate max-w-[170px]">
+                      {pr.exerciseName}
+                    </span>
+                    <div className="flex items-center space-x-1.5 shrink-0">
+                      <span className="text-primary font-black">{pr.details}</span>
+                      {pr.deltaText && (
+                        <span className="text-[9px] text-black bg-primary px-1 rounded font-black">
+                          {pr.deltaText}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
