@@ -55,21 +55,13 @@ export const ShareWorkoutSheet: React.FC<ShareWorkoutSheetProps> = ({
       if (onShare) {
         await onShare(customization, result.file, result.dataUrl);
       } else {
-        // Native Share attempt
-        const shareResult = await shareWorkoutImageNative({
+        // Native Share attempt (automatically downloads on web fallback)
+        await shareWorkoutImageNative({
           title: `Forma — ${shareData.workoutTitle}`,
           text: `Finished my ${shareData.workoutTitle} training session on Forma!`,
           file: result.file,
           dataUrl: result.dataUrl,
         });
-
-        // If native share was not supported / available, download directly
-        if (shareResult.method === 'fallback') {
-          const a = document.createElement('a');
-          a.href = result.dataUrl;
-          a.download = result.file.name;
-          a.click();
-        }
       }
     } catch (err: any) {
       console.error('Share generation error:', err);
@@ -194,30 +186,43 @@ export const ShareWorkoutSheet: React.FC<ShareWorkoutSheetProps> = ({
           </div>
         </div>
 
-        {/* PRIMARY SHARE BUTTON */}
-        <button
-          type="button"
-          onClick={handleGenerateAndShare}
-          disabled={isGenerating}
-          className="w-full py-4 bg-primary hover:bg-primary-hover text-black font-display font-black text-sm uppercase tracking-wider rounded-2xl shadow-glow-md flex items-center justify-center space-x-2 transition-transform active:scale-98 disabled:opacity-50"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin text-black" />
-              <span>GENERATING SHARE CARD...</span>
-            </>
-          ) : generatedImage ? (
-            <>
-              <Share2 className="w-4 h-4 text-black stroke-[2.5]" />
-              <span>READY TO SHARE • TAP TO EXPORT</span>
-            </>
-          ) : (
-            <>
-              <Share2 className="w-4 h-4 text-black stroke-[2.5]" />
-              <span>SHARE WORKOUT (1080 × 1920)</span>
-            </>
+        {/* PRIMARY SHARE / DOWNLOAD BUTTONS */}
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={handleGenerateAndShare}
+            disabled={isGenerating}
+            className="w-full py-4 bg-primary hover:bg-primary-hover text-black font-display font-black text-sm uppercase tracking-wider rounded-2xl shadow-glow-md flex items-center justify-center space-x-2 transition-transform active:scale-98 disabled:opacity-50"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-black" />
+                <span>GENERATING SHARE CARD...</span>
+              </>
+            ) : (
+              <>
+                <Share2 className="w-4 h-4 text-black stroke-[2.5]" />
+                <span>SHARE WORKOUT (1080 × 1920)</span>
+              </>
+            )}
+          </button>
+
+          {generatedImage && (
+            <button
+              type="button"
+              onClick={() => {
+                const a = document.createElement('a');
+                a.href = generatedImage.dataUrl;
+                a.download = generatedImage.file.name;
+                a.click();
+              }}
+              className="w-full py-3 bg-surface hover:bg-surface-hover border border-primary/40 text-primary font-mono font-bold text-xs uppercase tracking-wider rounded-2xl flex items-center justify-center space-x-2 transition-colors"
+            >
+              <Download className="w-4 h-4 text-primary" />
+              <span>DOWNLOAD PNG (1080 × 1920)</span>
+            </button>
           )}
-        </button>
+        </div>
 
         {/* CLOSE BUTTON */}
         <button
