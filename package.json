@@ -11,6 +11,7 @@
     "dev:web": "vite"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~6.1.2",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
@@ -25,6 +26,7 @@
     "react-native": "0.81.5",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-svg": "15.12.1",
+    "react-native-web": "^0.21.0",
     "recharts": "^2.15.1",
     "tailwind-merge": "^3.0.2"
   },
