@@ -14,16 +14,20 @@ import {
   CheckCircle, 
   Filter, 
   Search, 
-  Layers 
+  Layers,
+  Share2
 } from 'lucide-react';
 import { WorkoutSession } from '../../types/workout';
 import { FormaLogo } from '../../components/brand/FormaLogo';
+import { ShareWorkoutSheet } from '../../components/sharing/ShareWorkoutSheet';
+import { buildWorkoutShareData } from '../../utils/shareWorkoutData';
 
 export const HistoryPage: React.FC = () => {
   const { sessions, prs, settings, program } = useWorkout();
 
   const [viewMode, setViewMode] = useState<'workouts' | 'exercises'>('workouts');
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
+  const [sharingSession, setSharingSession] = useState<WorkoutSession | null>(null);
 
   // Exercise history state
   const [selectedExerciseId, setSelectedExerciseId] = useState<string>('d1-ex1');
@@ -34,6 +38,12 @@ export const HistoryPage: React.FC = () => {
       .filter(s => s.status === 'COMPLETED')
       .sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
   }, [sessions]);
+
+  // Selected session for share preview
+  const shareData = useMemo(() => {
+    if (!sharingSession) return null;
+    return buildWorkoutShareData(sharingSession, sessions, settings.units);
+  }, [sharingSession, sessions, settings.units]);
 
   // All unique exercises available across program and completed sessions
   const exerciseOptions = useMemo(() => {
@@ -120,6 +130,12 @@ export const HistoryPage: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-32 pt-6 px-4 max-w-lg mx-auto space-y-6">
+      <ShareWorkoutSheet 
+        isOpen={!!sharingSession} 
+        onClose={() => setSharingSession(null)} 
+        shareData={shareData}
+        userName={settings.userName}
+      />
       {/* HEADER & VIEW TOGGLE */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -197,8 +213,7 @@ export const HistoryPage: React.FC = () => {
               >
                 {/* Session summary header */}
                 <div
-                  onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
-                  className="p-4 sm:p-5 cursor-pointer select-none"
+                  className="p-4 sm:p-5 select-none"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
@@ -212,12 +227,31 @@ export const HistoryPage: React.FC = () => {
                       )}
                     </div>
 
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-text-secondary font-bold flex items-center">
-                      <CheckCircle className="w-3 h-3 text-primary mr-1" /> COMPLETED
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      {/* QUICK SHARE BUTTON ON HISTORY ITEM */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSharingSession(session);
+                        }}
+                        className="px-2.5 py-1 bg-surface hover:bg-surface-hover border border-border hover:border-primary/50 text-[11px] font-mono text-primary font-bold rounded-lg flex items-center space-x-1 transition-colors"
+                        title="Share this workout"
+                      >
+                        <Share2 className="w-3 h-3 text-primary stroke-[2.5]" />
+                        <span>SHARE ↗</span>
+                      </button>
+
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-text-secondary font-bold flex items-center">
+                        <CheckCircle className="w-3 h-3 text-primary mr-1" /> COMPLETED
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div 
+                    onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
+                    className="flex items-center justify-between cursor-pointer"
+                  >
                     <div>
                       <h3 className="text-base font-display font-bold text-white uppercase">
                         {displayTitle}
@@ -254,8 +288,20 @@ export const HistoryPage: React.FC = () => {
                 {/* Expanded Session Set-by-Set Detail */}
                 {isExpanded && (
                   <div className="px-4 pb-5 pt-1 sm:px-5 border-t border-border/60 space-y-3">
-                    <div className="text-[10px] font-mono uppercase tracking-widest text-text-secondary font-bold pt-2">
-                      EXERCISE BREAKDOWN
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="text-[10px] font-mono uppercase tracking-widest text-text-secondary font-bold">
+                        EXERCISE BREAKDOWN
+                      </div>
+
+                      {/* SHARE FROM DETAIL VIEW */}
+                      <button
+                        type="button"
+                        onClick={() => setSharingSession(session)}
+                        className="px-3 py-1 bg-primary text-black font-display font-black text-xs uppercase tracking-wider rounded-xl shadow-glow-sm flex items-center space-x-1.5 hover:bg-primary-hover transition-colors"
+                      >
+                        <Share2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>SHARE WORKOUT CARD</span>
+                      </button>
                     </div>
 
                     <div className="space-y-2">
