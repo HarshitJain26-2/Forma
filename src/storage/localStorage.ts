@@ -1,5 +1,6 @@
-import { Achievement, BodyMeasurement, PersonalRecord, UserSettings, WorkoutSession } from '../types/workout';
+import { Achievement, BodyMeasurement, PersonalRecord, UserSettings, WorkoutDay, WorkoutSession } from '../types/workout';
 import { STORAGE_VERSION, StorageDataPayload } from './storageVersion';
+import { WORKOUT_PROGRAM } from '../data/workoutProgram';
 
 const KEYS = {
   SESSIONS: 'forma_sessions_v1',
@@ -9,6 +10,7 @@ const KEYS = {
   ACHIEVEMENTS: 'forma_achievements_v1',
   SETTINGS: 'forma_settings_v1',
   REST_TIMER_STATE: 'forma_rest_timer_v1',
+  PROGRAM: 'forma_program_v1',
 };
 
 export const DEFAULT_SETTINGS: UserSettings = {
@@ -42,6 +44,18 @@ function safeSet<T>(key: string, value: T): void {
 }
 
 export const storage = {
+  // PROGRAM TEMPLATE
+  getProgram(): WorkoutDay[] {
+    return safeParse<WorkoutDay[]>(KEYS.PROGRAM, WORKOUT_PROGRAM);
+  },
+  saveProgram(program: WorkoutDay[]): void {
+    safeSet(KEYS.PROGRAM, program);
+  },
+  resetProgram(): WorkoutDay[] {
+    this.saveProgram(WORKOUT_PROGRAM);
+    return WORKOUT_PROGRAM;
+  },
+
   // SESSIONS
   getSessions(): WorkoutSession[] {
     return safeParse<WorkoutSession[]>(KEYS.SESSIONS, []);
@@ -183,6 +197,7 @@ export const storage = {
     localStorage.removeItem(KEYS.MEASUREMENTS);
     localStorage.removeItem(KEYS.ACHIEVEMENTS);
     localStorage.removeItem(KEYS.REST_TIMER_STATE);
+    localStorage.removeItem(KEYS.PROGRAM);
     this.saveSettings({ ...DEFAULT_SETTINGS, demoDataActive: false });
   }
 };

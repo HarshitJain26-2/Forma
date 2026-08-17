@@ -50,6 +50,21 @@ interface WorkoutContextType {
   removeSet: (exerciseId: string, setIndex: number) => void;
   updateExerciseNote: (exerciseId: string, note: string) => void;
 
+  // Active workout exercise management
+  addExerciseToActiveWorkout: (exercise: Exercise | Omit<Exercise, 'id' | 'workoutDayId' | 'order'>, initialSets?: number) => void;
+  removeExerciseFromActiveWorkout: (exerciseId: string) => void;
+  updateActiveWorkoutExercise: (exerciseId: string, updates: Partial<ExerciseLog>) => void;
+  reorderActiveWorkoutExercises: (startIndex: number, endIndex: number) => void;
+
+  // Program / Routine customization
+  updateProgramDay: (dayId: Weekday | string | number, updates: Partial<WorkoutDay>) => void;
+  addExerciseToProgramDay: (dayId: Weekday | string | number, exercise: Omit<Exercise, 'id' | 'workoutDayId' | 'order'>) => void;
+  removeExerciseFromProgramDay: (dayId: Weekday | string | number, exerciseId: string) => void;
+  updateProgramExercise: (dayId: Weekday | string | number, exerciseId: string, updates: Partial<Exercise>) => void;
+  reorderProgramExercises: (dayId: Weekday | string | number, startIndex: number, endIndex: number) => void;
+  resetProgramDay: (dayId: Weekday | string | number) => void;
+  resetEntireProgram: () => void;
+
   // Rest timer
   restTimer: RestTimerState;
   startRestTimer: (seconds?: number) => void;
@@ -89,6 +104,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     migrateStorageIfNeeded();
   }, []);
 
+  const [program, setProgram] = useState<WorkoutDay[]>(() => storage.getProgram());
   const [settings, setSettings] = useState<UserSettings>(() => storage.getSettings());
   const [sessions, setSessions] = useState<WorkoutSession[]>(() => {
     const stored = storage.getSessions();
@@ -227,12 +243,12 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const startWorkout = (dayId: Weekday | number | string) => {
     let dayDef: WorkoutDay | undefined;
     if (typeof dayId === 'string') {
-      dayDef = WORKOUT_PROGRAM.find(d => d.weekday === dayId || d.id === dayId);
+      dayDef = program.find(d => d.weekday === dayId || d.id === dayId);
     } else if (typeof dayId === 'number') {
-      dayDef = WORKOUT_PROGRAM.find(d => d.dayNumber === dayId);
+      dayDef = program.find(d => d.dayNumber === dayId);
     }
     if (!dayDef) {
-      dayDef = WORKOUT_PROGRAM[0];
+      dayDef = program[0];
     }
     if (dayDef.isRestDay) return;
 
@@ -304,10 +320,30 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const toggleSetComplete = (exerciseId: string, setIndex: number) => {
     if (!activeSession) return;
 
-    const dayDef = WORKOUT_PROGRAM.find(
+    const dayDef = program.find(
       d => d.id === activeSession.workoutDayId || d.weekday === activeSession.weekday || d.dayNumber === activeSession.dayNumber
     );
-    const exerciseDef = dayDef?.exercises.find(e => e.id === exerciseId);
+    const targetExLog = activeSession.exerciseLogs.find(e => e.exerciseId === exerciseId);
+    
+    // Exercise definition fallback for custom or dynamic exercises
+    const exerciseDef: Exercise = dayDef?.exercises.find(e => e.id === exerciseId) || {
+      id: exerciseId,
+      workoutDayId: activeSession.workoutDayId,
+      name: targetExLog?.exerciseName || 'Exercise',
+      order: 1,
+      targetSets: targetExLog?.targetSets || 3,
+      targetRepMin: targetExLog?.targetRepMin || 8,
+      targetRepMax: targetExLog?.targetRepMax || 12,
+      primaryMuscle: 'chest',
+      secondaryMuscles: [],
+      equipment: 'dumbbell',
+      movementPattern: 'isolation',
+      isCompound: false,
+      isIsolation: true,
+      isFailureBased: targetExLog?.isFailureBased || false,
+      defaultWeightKg: 20,
+      weightIncrementKg: 2.5,
+    };
 
     const updatedLogs = activeSession.exerciseLogs.map(exLog => {
       if (exLog.exerciseId !== exerciseId) return exLog;
@@ -463,6 +499,233 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setActiveSession({ ...activeSession, exerciseLogs: updatedLogs });
   };
 
+  // ACTIVE WORKOUT: ADD EXERCISE
+  const addExerciseToActiveWorkout = (
+    exercise: Exercise | Omit<Exercise, 'id' | 'workoutDayId' | 'order'>,
+    initialSetsCount: number = 3
+  ) => {
+    if (!activeSession) return;
+
+    const exId = ('id' in exercise && exercise.id) ? exercise.id : `ex-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+    const numSets = exercise.targetSets || initialSetsCount;
+
+    // Check if previous sessions have logged this exercise to grab last used weight
+    const prevSession = sessions
+      .filter(s => s.status === 'COMPLETED')
+      .find(s => s.exerciseLogs.some(e => e.exerciseId === exId || e.exerciseName.toLowerCase() === exercise.name.toLowerCase()));
+
+    let defaultWt = exercise.defaultWeightKg || 20;
+    if (prevSession) {
+      const prevEx = prevSession.exerciseLogs.find(e => e.exerciseId === exId || e.exerciseName.toLowerCase() === exercise.name.toLowerCase());
+      const completedSets = prevEx?.sets.filter(s => s.completed);
+      if (completedSets && completedSets.length > 0) {
+        defaultWt = completedSets[completedSets.length - 1].weightKg;
+      }
+    }
+
+    const sets: SetLog[] = Array.from({ length: numSets }).map((_, idx) => ({
+      id: `set-${Date.now()}-${exId}-${idx + 1}`,
+      setNumber: idx + 1,
+      weightKg: exercise.isFailureBased ? 0 : defaultWt,
+      reps: exercise.isFailureBased ? 0 : (exercise.targetRepMax || 10),
+      completed: false,
+    }));
+
+    const newExLog: ExerciseLog = {
+      exerciseId: exId,
+      exerciseName: exercise.name,
+      targetSets: numSets,
+      targetRepMin: exercise.targetRepMin || 8,
+      targetRepMax: exercise.targetRepMax || 12,
+      sets,
+      completed: false,
+      isFailureBased: exercise.isFailureBased || false,
+    };
+
+    const updatedLogs = [...activeSession.exerciseLogs, newExLog];
+
+    setActiveSession({
+      ...activeSession,
+      exerciseLogs: updatedLogs,
+      totalVolumeKg: calculateSessionVolume({ ...activeSession, exerciseLogs: updatedLogs }),
+    });
+  };
+
+  // ACTIVE WORKOUT: REMOVE EXERCISE
+  const removeExerciseFromActiveWorkout = (exerciseId: string) => {
+    if (!activeSession) return;
+    const updatedLogs = activeSession.exerciseLogs.filter(e => e.exerciseId !== exerciseId);
+    setActiveSession({
+      ...activeSession,
+      exerciseLogs: updatedLogs,
+      totalVolumeKg: calculateSessionVolume({ ...activeSession, exerciseLogs: updatedLogs }),
+    });
+  };
+
+  // ACTIVE WORKOUT: UPDATE EXERCISE (Sets, Reps, Name, Note)
+  const updateActiveWorkoutExercise = (exerciseId: string, updates: Partial<ExerciseLog>) => {
+    if (!activeSession) return;
+    const updatedLogs = activeSession.exerciseLogs.map(exLog => {
+      if (exLog.exerciseId !== exerciseId) return exLog;
+
+      let sets = exLog.sets;
+      if (updates.targetSets && updates.targetSets !== exLog.sets.length) {
+        const diff = updates.targetSets - exLog.sets.length;
+        if (diff > 0) {
+          const lastSet = exLog.sets[exLog.sets.length - 1];
+          const newSets: SetLog[] = Array.from({ length: diff }).map((_, i) => ({
+            id: `set-${Date.now()}-${exLog.sets.length + i + 1}`,
+            setNumber: exLog.sets.length + i + 1,
+            weightKg: lastSet ? lastSet.weightKg : 20,
+            reps: lastSet ? lastSet.reps : 10,
+            completed: false,
+          }));
+          sets = [...exLog.sets, ...newSets];
+        } else if (diff < 0) {
+          sets = exLog.sets.slice(0, updates.targetSets);
+        }
+      }
+
+      return {
+        ...exLog,
+        ...updates,
+        sets,
+        completed: sets.every(s => s.completed),
+      };
+    });
+
+    setActiveSession({
+      ...activeSession,
+      exerciseLogs: updatedLogs,
+      totalVolumeKg: calculateSessionVolume({ ...activeSession, exerciseLogs: updatedLogs }),
+    });
+  };
+
+  // ACTIVE WORKOUT: REORDER EXERCISES
+  const reorderActiveWorkoutExercises = (startIndex: number, endIndex: number) => {
+    if (!activeSession) return;
+    const result = Array.from(activeSession.exerciseLogs);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    setActiveSession({ ...activeSession, exerciseLogs: result });
+  };
+
+  // PROGRAM ROUTINE MANAGEMENT
+  const updateProgramDay = (dayId: Weekday | string | number, updates: Partial<WorkoutDay>) => {
+    setProgram(prev => {
+      const next = prev.map(d => (d.id === dayId || d.weekday === dayId || d.dayNumber === dayId ? { ...d, ...updates } : d));
+      storage.saveProgram(next);
+      return next;
+    });
+  };
+
+  const addExerciseToProgramDay = (
+    dayId: Weekday | string | number,
+    exerciseData: Omit<Exercise, 'id' | 'workoutDayId' | 'order'>
+  ) => {
+    setProgram(prev => {
+      const next = prev.map(day => {
+        if (day.id === dayId || day.weekday === dayId || day.dayNumber === dayId) {
+          const newId = `ex-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+          const newEx: Exercise = {
+            ...exerciseData,
+            id: newId,
+            workoutDayId: day.id,
+            order: day.exercises.length + 1,
+          };
+          return {
+            ...day,
+            exercises: [...day.exercises, newEx],
+          };
+        }
+        return day;
+      });
+      storage.saveProgram(next);
+      return next;
+    });
+  };
+
+  const removeExerciseFromProgramDay = (dayId: Weekday | string | number, exerciseId: string) => {
+    setProgram(prev => {
+      const next = prev.map(day => {
+        if (day.id === dayId || day.weekday === dayId || day.dayNumber === dayId) {
+          const filtered = day.exercises
+            .filter(e => e.id !== exerciseId)
+            .map((e, idx) => ({ ...e, order: idx + 1 }));
+          return {
+            ...day,
+            exercises: filtered,
+          };
+        }
+        return day;
+      });
+      storage.saveProgram(next);
+      return next;
+    });
+  };
+
+  const updateProgramExercise = (
+    dayId: Weekday | string | number,
+    exerciseId: string,
+    updates: Partial<Exercise>
+  ) => {
+    setProgram(prev => {
+      const next = prev.map(day => {
+        if (day.id === dayId || day.weekday === dayId || day.dayNumber === dayId) {
+          const updatedExercises = day.exercises.map(e => (e.id === exerciseId ? { ...e, ...updates } : e));
+          return {
+            ...day,
+            exercises: updatedExercises,
+          };
+        }
+        return day;
+      });
+      storage.saveProgram(next);
+      return next;
+    });
+  };
+
+  const reorderProgramExercises = (
+    dayId: Weekday | string | number,
+    startIndex: number,
+    endIndex: number
+  ) => {
+    setProgram(prev => {
+      const next = prev.map(day => {
+        if (day.id === dayId || day.weekday === dayId || day.dayNumber === dayId) {
+          const list = Array.from(day.exercises);
+          const [moved] = list.splice(startIndex, 1);
+          list.splice(endIndex, 0, moved);
+          const reordered = list.map((e, idx) => ({ ...e, order: idx + 1 }));
+          return { ...day, exercises: reordered };
+        }
+        return day;
+      });
+      storage.saveProgram(next);
+      return next;
+    });
+  };
+
+  const resetProgramDay = (dayId: Weekday | string | number) => {
+    const defaultDay = WORKOUT_PROGRAM.find(d => d.id === dayId || d.weekday === dayId || d.dayNumber === dayId);
+    if (!defaultDay) return;
+    setProgram(prev => {
+      const next = prev.map(day => {
+        if (day.id === dayId || day.weekday === dayId || day.dayNumber === dayId) {
+          return JSON.parse(JSON.stringify(defaultDay));
+        }
+        return day;
+      });
+      storage.saveProgram(next);
+      return next;
+    });
+  };
+
+  const resetEntireProgram = () => {
+    const fresh = storage.resetProgram();
+    setProgram(fresh);
+  };
+
   const completeWorkout = (notes?: string, overallRpe?: number, energyRating?: number) => {
     if (!activeSession) return;
 
@@ -471,13 +734,31 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const totalVolume = calculateSessionVolume(activeSession);
     
     // Check for Exercise-level Volume PRs
-    const dayDef = WORKOUT_PROGRAM.find(
+    const dayDef = program.find(
       d => d.id === activeSession.workoutDayId || d.weekday === activeSession.weekday || d.dayNumber === activeSession.dayNumber
     );
     let finalPRs: PersonalRecord[] = [...(activeSession.prsAchieved || [])];
 
     activeSession.exerciseLogs.forEach(exLog => {
-      const exDef = dayDef?.exercises.find(e => e.id === exLog.exerciseId);
+      const exDef: Exercise = dayDef?.exercises.find(e => e.id === exLog.exerciseId) || {
+        id: exLog.exerciseId,
+        workoutDayId: activeSession.workoutDayId,
+        name: exLog.exerciseName,
+        order: 1,
+        targetSets: exLog.targetSets,
+        targetRepMin: exLog.targetRepMin,
+        targetRepMax: exLog.targetRepMax,
+        primaryMuscle: 'chest',
+        secondaryMuscles: [],
+        equipment: 'dumbbell',
+        movementPattern: 'isolation',
+        isCompound: false,
+        isIsolation: true,
+        isFailureBased: exLog.isFailureBased || false,
+        defaultWeightKg: 20,
+        weightIncrementKg: 2.5,
+      };
+
       if (exDef) {
         const volPR = checkExerciseVolumePR(
           exDef, 
@@ -585,6 +866,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setMeasurements(storage.getMeasurements());
       setSettings(storage.getSettings());
       setAchievements(storage.getAchievements());
+      setProgram(storage.getProgram());
     }
     return res;
   };
@@ -595,6 +877,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setPrs([]);
     setMeasurements([]);
     setAchievements(INITIAL_ACHIEVEMENTS);
+    setProgram(WORKOUT_PROGRAM);
     setSettings(storage.getSettings());
     setActiveSession(null);
     setWorkoutDuration(0);
@@ -603,8 +886,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // CALENDAR-AWARE AUTOMATIC DETERMINATION OF TODAY'S WORKOUT
   const todaySplitDay = useMemo(() => {
     const currentWeekday = getCurrentWeekday();
-    return WORKOUT_PROGRAM.find(d => d.weekday === currentWeekday) || WORKOUT_PROGRAM[0];
-  }, []);
+    return program.find(d => d.weekday === currentWeekday) || program[0];
+  }, [program]);
 
   const nextSplitDay = useMemo(() => {
     const day = new Date().getDay();
@@ -619,13 +902,13 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
       6: 'saturday',
     };
     const tomorrowWeekday = mapping[tomorrowDay] || 'monday';
-    return WORKOUT_PROGRAM.find(d => d.weekday === tomorrowWeekday) || WORKOUT_PROGRAM[0];
-  }, []);
+    return program.find(d => d.weekday === tomorrowWeekday) || program[0];
+  }, [program]);
 
   return (
     <WorkoutContext.Provider
       value={{
-        program: WORKOUT_PROGRAM,
+        program,
         sessions,
         prs,
         measurements,
@@ -642,6 +925,17 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         addSet,
         removeSet,
         updateExerciseNote,
+        addExerciseToActiveWorkout,
+        removeExerciseFromActiveWorkout,
+        updateActiveWorkoutExercise,
+        reorderActiveWorkoutExercises,
+        updateProgramDay,
+        addExerciseToProgramDay,
+        removeExerciseFromProgramDay,
+        updateProgramExercise,
+        reorderProgramExercises,
+        resetProgramDay,
+        resetEntireProgram,
         restTimer,
         startRestTimer,
         pauseRestTimer,

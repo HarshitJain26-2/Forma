@@ -21,6 +21,12 @@ interface ExerciseCardProps {
   exerciseLog: ExerciseLog;
   isExpanded: boolean;
   onToggleExpand: () => void;
+  onEditExercise?: () => void;
+  onDeleteExercise?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
 }
 
 export const ExerciseCard: React.FC<ExerciseCardProps> = ({
@@ -28,6 +34,12 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   exerciseLog,
   isExpanded,
   onToggleExpand,
+  onEditExercise,
+  onDeleteExercise,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp = false,
+  canMoveDown = false,
 }) => {
   const { 
     sessions, 
@@ -66,10 +78,12 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     }`}>
       {/* HEADER BAR */}
       <div 
-        onClick={onToggleExpand}
         className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none hover:bg-surface/40 transition-colors"
       >
-        <div className="flex items-center space-x-3.5 flex-1 min-w-0">
+        <div 
+          onClick={onToggleExpand}
+          className="flex items-center space-x-3.5 flex-1 min-w-0"
+        >
           <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-display font-extrabold text-xs transition-colors ${
             isFullyCompleted 
               ? 'bg-primary text-black shadow-glow-sm' 
@@ -99,13 +113,45 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-3 ml-2">
-          <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-lg ${
-            isFullyCompleted ? 'bg-primary/20 text-primary' : 'bg-surface text-text-secondary'
-          }`}>
-            {completedSetsCount}/{totalSetsCount}
-          </span>
-          {isExpanded ? <ChevronUp className="w-5 h-5 text-text-secondary" /> : <ChevronDown className="w-5 h-5 text-text-secondary" />}
+        <div className="flex items-center space-x-2 ml-2">
+          {/* Quick Action Icons when expanded */}
+          {isExpanded && onEditExercise && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditExercise();
+              }}
+              title="Edit Exercise"
+              className="p-1.5 rounded-lg bg-surface hover:bg-surface-hover border border-border text-text-secondary hover:text-primary transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {isExpanded && onDeleteExercise && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteExercise();
+              }}
+              title="Delete Exercise"
+              className="p-1.5 rounded-lg bg-surface hover:bg-red-500/20 border border-border hover:border-red-500/40 text-text-secondary hover:text-red-400 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          <div 
+            onClick={onToggleExpand}
+            className="flex items-center space-x-2"
+          >
+            <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-lg ${
+              isFullyCompleted ? 'bg-primary/20 text-primary' : 'bg-surface text-text-secondary'
+            }`}>
+              {completedSetsCount}/{totalSetsCount}
+            </span>
+            {isExpanded ? <ChevronUp className="w-5 h-5 text-text-secondary" /> : <ChevronDown className="w-5 h-5 text-text-secondary" />}
+          </div>
         </div>
       </div>
 

@@ -29,5 +29,6 @@
     "src",
     "App.tsx",
     "index.js"
-  ]
+  ],
+  "extends": "expo/tsconfig.base"
 }

@@ -9,16 +9,24 @@ import { ActiveWorkoutView } from './components/workout/ActiveWorkoutView';
 import { RestTimerDock } from './components/workout/RestTimerDock';
 import { PRCelebrationModal } from './components/workout/PRCelebrationModal';
 import { WorkoutCompletionModal } from './components/workout/WorkoutCompletionModal';
-import { Play } from 'lucide-react';
+import { RoutineEditorModal } from './components/workout/RoutineEditorModal';
+import { Play, Edit3 } from 'lucide-react';
 import { Weekday } from './types/workout';
 
 const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const { activeSession, startWorkout, program, todaySplitDay } = useWorkout();
+  const [isRoutineEditorOpen, setIsRoutineEditorOpen] = useState(false);
+  const [editorWeekday, setEditorWeekday] = useState<Weekday>(todaySplitDay.weekday);
 
   const handleStartWorkout = (dayId: Weekday | string | number) => {
     startWorkout(dayId);
     setActiveTab('workout');
+  };
+
+  const handleOpenRoutineEditor = (weekday: Weekday) => {
+    setEditorWeekday(weekday);
+    setIsRoutineEditorOpen(true);
   };
 
   const renderContent = () => {
@@ -31,13 +39,23 @@ const AppContent: React.FC = () => {
       // No active workout selected: Show quick start selection screen
       return (
         <div className="min-h-screen pb-32 pt-6 px-4 max-w-lg mx-auto space-y-6 animate-scale-in">
-          <div>
-            <span className="text-[11px] font-mono font-bold tracking-widest text-primary uppercase">
-              SELECT WORKOUT SESSION
-            </span>
-            <h1 className="text-2xl font-display font-black tracking-tight text-white uppercase mt-0.5">
-              START TRAINING
-            </h1>
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-[11px] font-mono font-bold tracking-widest text-primary uppercase">
+                SELECT WORKOUT SESSION
+              </span>
+              <h1 className="text-2xl font-display font-black tracking-tight text-white uppercase mt-0.5">
+                START TRAINING
+              </h1>
+            </div>
+
+            <button
+              onClick={() => handleOpenRoutineEditor(todaySplitDay.weekday)}
+              className="px-3 py-1.5 bg-surface hover:bg-surface-hover border border-border hover:border-primary/50 text-[11px] font-mono text-text-secondary hover:text-primary rounded-xl flex items-center space-x-1.5 transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Customize</span>
+            </button>
           </div>
 
           <div className="bg-gradient-to-r from-card to-surface border border-primary/40 rounded-3xl p-5 space-y-3">
@@ -65,9 +83,17 @@ const AppContent: React.FC = () => {
 
           {/* All Weekdays Split Routine */}
           <div className="space-y-3">
-            <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-text-secondary">
-              Or Choose Another Day:
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-text-secondary">
+                Or Choose Another Day:
+              </h3>
+              <button
+                onClick={() => handleOpenRoutineEditor('monday')}
+                className="text-[11px] font-mono text-primary hover:underline uppercase"
+              >
+                Edit All Days
+              </button>
+            </div>
             <div className="space-y-2">
               {program.map(day => (
                 <div
@@ -127,6 +153,11 @@ const AppContent: React.FC = () => {
       {/* Global Modals */}
       <PRCelebrationModal />
       <WorkoutCompletionModal />
+      <RoutineEditorModal
+        isOpen={isRoutineEditorOpen}
+        onClose={() => setIsRoutineEditorOpen(false)}
+        initialWeekday={editorWeekday}
+      />
 
       {/* Persistent Bottom Navigation */}
       <BottomNav
