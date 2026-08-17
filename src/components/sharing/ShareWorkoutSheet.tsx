@@ -1,14 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { WorkoutShareData } from '../../types/sharing';
 import { WorkoutShareCard, ShareCardCustomization } from './WorkoutShareCard';
-import { X, Share2, Eye, EyeOff, Loader2, Sparkles, Check } from 'lucide-react';
+import { generateWorkoutShareImage } from '../../services/shareImageGenerator';
+import { X, Share2, EyeOff, Loader2, Sparkles, Check, AlertTriangle, Download, RefreshCw } from 'lucide-react';
 
 interface ShareWorkoutSheetProps {
   isOpen: boolean;
   onClose: () => void;
   shareData: WorkoutShareData | null;
-  onShare: (customization: ShareCardCustomization, cardElement?: HTMLElement | null) => Promise<void> | void;
-  isGenerating?: boolean;
+  onShare?: (customization: ShareCardCustomization, file?: File, dataUrl?: string) => Promise<void> | void;
   userName?: string;
 }
 
@@ -17,7 +17,6 @@ export const ShareWorkoutSheet: React.FC<ShareWorkoutSheetProps> = ({
   onClose,
   shareData,
   onShare,
-  isGenerating = false,
   userName,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -29,6 +28,10 @@ export const ShareWorkoutSheet: React.FC<ShareWorkoutSheetProps> = ({
     showStreak: true,
   });
 
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const [generatedImage, setGeneratedImage] = useState<{ dataUrl: string; file: File } | null>(null);
+
   if (!isOpen || !shareData) return null;
 
   const toggleOption = (key: keyof ShareCardCustomization) => {
@@ -36,10 +39,34 @@ export const ShareWorkoutSheet: React.FC<ShareWorkoutSheetProps> = ({
       ...prev,
       [key]: !prev[key],
     }));
+    // Reset previously generated image so it regenerates on next share
+    setGeneratedImage(null);
   };
 
-  const handleShareClick = () => {
-    onShare(customization, cardRef.current);
+  const handleGenerateAndShare = async () => {
+    setIsGenerating(true);
+    setGenerationError(null);
+
+    try {
+      const result = await generateWorkoutShareImage(shareData, customization, userName || 'ATHLETE');
+      setGeneratedImage({ dataUrl: result.dataUrl, file: result.file });
+
+      // Trigger native share or web fallback if handler provided
+      if (onShare) {
+        await onShare(customization, result.file, result.dataUrl);
+      } else {
+        // Direct browser fallback download
+        const a = document.createElement('a');
+        a.href = result.dataUrl;
+        a.download = result.file.name;
+        a.click();
+      }
+    } catch (err: any) {
+      console.error('Share generation error:', err);
+      setGenerationError(err?.message || "Couldn't create share card");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -75,6 +102,25 @@ export const ShareWorkoutSheet: React.FC<ShareWorkoutSheetProps> = ({
           />
         </div>
       </div>
+
+      {/* ERROR STATE MODAL */}
+      {generationError && (
+        <div className="w-full max-w-md bg-red-500/10 border border-red-500/40 rounded-2xl p-4 mb-2 flex items-center justify-between animate-shake">
+          <div className="flex items-center space-x-2.5 text-xs text-red-400 font-mono">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <div>
+              <div className="font-bold uppercase">COULDN'T CREATE SHARE CARD</div>
+              <div className="text-[11px] text-neutral-400">Please try again.</div>
+            </div>
+          </div>
+          <button
+            onClick={handleGenerateAndShare}
+            className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white font-mono font-bold text-xs uppercase rounded-xl transition-colors shrink-0"
+          >
+            TRY AGAIN
+          </button>
+        </div>
+      )}
 
       {/* CONTROLS & SHARE CTA */}
       <div className="w-full max-w-md space-y-4 pt-2 shrink-0 pb-safe">
@@ -141,7 +187,7 @@ export const ShareWorkoutSheet: React.FC<ShareWorkoutSheetProps> = ({
         {/* PRIMARY SHARE BUTTON */}
         <button
           type="button"
-          onClick={handleShareClick}
+          onClick={handleGenerateAndShare}
           disabled={isGenerating}
           className="w-full py-4 bg-primary hover:bg-primary-hover text-black font-display font-black text-sm uppercase tracking-wider rounded-2xl shadow-glow-md flex items-center justify-center space-x-2 transition-transform active:scale-98 disabled:opacity-50"
         >
@@ -150,10 +196,15 @@ export const ShareWorkoutSheet: React.FC<ShareWorkoutSheetProps> = ({
               <Loader2 className="w-4 h-4 animate-spin text-black" />
               <span>GENERATING SHARE CARD...</span>
             </>
+          ) : generatedImage ? (
+            <>
+              <Share2 className="w-4 h-4 text-black stroke-[2.5]" />
+              <span>READY TO SHARE • TAP TO EXPORT</span>
+            </>
           ) : (
             <>
               <Share2 className="w-4 h-4 text-black stroke-[2.5]" />
-              <span>SHARE WORKOUT</span>
+              <span>SHARE WORKOUT (1080 × 1920)</span>
             </>
           )}
         </button>
@@ -171,3 +222,4 @@ export const ShareWorkoutSheet: React.FC<ShareWorkoutSheetProps> = ({
     </div>
   );
 };
+
